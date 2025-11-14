@@ -1,14 +1,22 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 import httpx
-import os
-from typing import Dict, Any, Optional
-import asyncio
-from dotenv import load_dotenv
+import uvicorn
 
-# Load environment variables
-load_dotenv()
+# Import our modules
+try:
+    from .config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
+    from .models import SearchRequest
+    from .utils import transform_to_experian_format
+    from .data_processing import clean_response_data
+    from .field_mappings import map_field_names
+except ImportError:
+    # Handle case when running directly
+    from config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
+    from models import SearchRequest
+    from utils import transform_to_experian_format
+    from data_processing import clean_response_data
+    from field_mappings import map_field_names
 
 app = FastAPI(
     title="KC Experian API Integration",
@@ -17,81 +25,17 @@ app = FastAPI(
 )
 
 # Configure CORS
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic models for request/response validation
-class SearchRequest(BaseModel):
-    FIRST_NAME: str = Field(..., min_length=1, max_length=50, description="First name")
-    LAST_NAME: str = Field(..., min_length=1, max_length=50, description="Last name")
-    STREET1: str = Field(..., min_length=1, max_length=100, description="Street address line 1")
-    STREET2: Optional[str] = Field(None, max_length=100, description="Street address line 2")
-    CITY: str = Field(..., min_length=1, max_length=50, description="City")
-    STATE: str = Field(..., min_length=2, max_length=2, description="State code (2 letters)")
-    ZIP: str = Field(..., min_length=5, max_length=10, description="ZIP code")
 
-class ExperianPayload(BaseModel):
-    LEAD_TRANS_DETAILS: Dict[str, str]
-    LEAD_ADDRESS: Dict[str, str]
 
-# Configuration
-EXPERIAN_API_URL = os.getenv("EXPERIAN_API_URL")
-EXPERIAN_AUTH_TOKEN = os.getenv("EXPERIAN_AUTH_TOKEN")
 
-# Debug logging for environment variables
-print(f"DEBUG: EXPERIAN_API_URL = {EXPERIAN_API_URL}")
-print(f"DEBUG: EXPERIAN_AUTH_TOKEN = {EXPERIAN_AUTH_TOKEN[:10]}...{EXPERIAN_AUTH_TOKEN[-10:] if EXPERIAN_AUTH_TOKEN else 'None'}")
-
-def clean_response_data(data: Any) -> Any:
-    """
-    Recursively clean response data by removing empty, null, or blank values.
-    Only returns fields that contain actual data.
-    """
-    if isinstance(data, dict):
-        cleaned = {}
-        for key, value in data.items():
-            cleaned_value = clean_response_data(value)
-            if cleaned_value is not None and cleaned_value != "" and cleaned_value != {}:
-                cleaned[key] = cleaned_value
-        return cleaned if cleaned else None
-    
-    elif isinstance(data, list):
-        cleaned = [clean_response_data(item) for item in data]
-        cleaned = [item for item in cleaned if item is not None and item != "" and item != {}]
-        return cleaned if cleaned else None
-    
-    elif isinstance(data, str):
-        return data.strip() if data.strip() else None
-    
-    else:
-        return data if data is not None else None
-
-def transform_to_experian_format(search_data: SearchRequest) -> ExperianPayload:
-    """Transform input data to Experian API format"""
-    return ExperianPayload(
-        LEAD_TRANS_DETAILS={
-            "FIRST_NAME": search_data.FIRST_NAME,
-            "LAST_NAME": search_data.LAST_NAME
-        },
-        LEAD_ADDRESS={
-            "STREET1": search_data.STREET1,
-            "STREET2": search_data.STREET2 or "",
-            "CITY": search_data.CITY,
-            "STATE": search_data.STATE.upper(),
-            "ZIP": search_data.ZIP
-        }
-    )
 
 @app.post("/search")
 async def search_experian(search_request: SearchRequest):
@@ -133,7 +77,10 @@ async def search_experian(search_request: SearchRequest):
             if not cleaned_data:
                 return {"message": "No data found for the provided search criteria"}
             
-            return cleaned_data
+            # Map field names to user-friendly names
+            mapped_data = map_field_names(cleaned_data)
+            
+            return mapped_data
             
     except httpx.TimeoutException:
         raise HTTPException(
@@ -169,14 +116,9 @@ async def health_check():
     return {"status": "healthy", "service": "experian-api-integration"}
 
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    host = os.getenv("HOST", "localhost")
-    debug = os.getenv("DEBUG", "True").lower() == "true"
-    
     uvicorn.run(
         "main:app",
-        host=host,
-        port=port,
-        reload=debug
+        host=HOST,
+        port=PORT,
+        reload=DEBUG
     )
