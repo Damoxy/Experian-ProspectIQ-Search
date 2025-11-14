@@ -35,14 +35,14 @@ function App() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 4 }}>
         <img 
           src="/knowledgecore.jpeg" 
           alt="Knowledge Core Logo" 
           style={{ height: '60px', marginRight: '20px' }}
         />
-        <Typography variant="h4" component="h1" align="center">
-          Knowledge Core Prospect IQ Search
+        <Typography variant="h4" component="h1" sx={{ color: 'white' }}>
+          Experian Prospect IQ Search
         </Typography>
       </Box>
       
