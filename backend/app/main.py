@@ -3,20 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import uvicorn
 
-# Import our modules
-try:
-    from .config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
-    from .models import SearchRequest
-    from .utils import transform_to_experian_format
-    from .data_processing import clean_response_data
-    from .field_mappings import map_field_names
-except ImportError:
-    # Handle case when running directly
-    from config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
-    from models import SearchRequest
-    from utils import transform_to_experian_format
-    from data_processing import clean_response_data
-    from field_mappings import map_field_names
+# Import our modules - using absolute imports when running as module
+import os
+import sys
+
+# Add the current directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
+from models import SearchRequest
+from utils import transform_to_experian_format
+from data_processing import clean_response_data
+from field_mappings import map_field_names
 
 app = FastAPI(
     title="KC Experian API Integration",

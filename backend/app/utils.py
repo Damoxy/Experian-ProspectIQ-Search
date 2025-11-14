@@ -2,7 +2,10 @@
 Utility functions for data transformation
 """
 
-from .models import SearchRequest, ExperianPayload
+try:
+    from models import SearchRequest, ExperianPayload
+except ImportError:
+    from models import SearchRequest, ExperianPayload
 
 def transform_to_experian_format(search_data: SearchRequest) -> ExperianPayload:
     """
