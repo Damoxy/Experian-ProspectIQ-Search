@@ -217,9 +217,3 @@ The application includes comprehensive error handling:
 - Check terminal output for backend issues  
 - Review API documentation at http://localhost:8000/docs
 
-## 📝 Notes
-
-- The Experian API token used is for demonstration purposes
-- All response data is cleaned to remove empty/null values
-- The application is configured for development - additional security measures needed for production
-- Material UI provides consistent, professional styling throughout the interface
