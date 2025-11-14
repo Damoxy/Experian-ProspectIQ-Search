@@ -1,9 +1,5 @@
 # KC Experian Integration
 
-A full-stack application that provides a React frontend with Material UI for searching Experian's contact and address database through a FastAPI backend.
-
-## 🚀 Features
-
 ### Frontend (React + Material UI)
 - Clean, professional form interface for data input
 - Fields: First Name, Last Name, Street Address 1 & 2, City, State, ZIP
@@ -57,8 +53,8 @@ cp .env.example .env
 Edit `.env` if needed to update configuration:
 ```env
 # Experian API Configuration
-EXPERIAN_API_URL=https://els.experianinteractive.com/els/rest/enrich/v1/search
-EXPERIAN_AUTH_TOKEN=8a13096345157d843
+EXPERIAN_API_URL=<EXPERIAN_API_URL>
+EXPERIAN_AUTH_TOKEN=<EXPERIAN_AUTH_TOKEN>
 
 # Server Configuration
 HOST=localhost
@@ -137,10 +133,6 @@ Once the backend is running, visit:
 
 ```
 KC_Experian/
-├── .github/
-│   └── copilot-instructions.md    # GitHub Copilot configuration
-├── .vscode/
-│   └── tasks.json                 # VS Code tasks for development
 ├── backend/
 │   ├── .env                       # Environment variables (create from .env.example)
 │   ├── .env.example               # Environment template
