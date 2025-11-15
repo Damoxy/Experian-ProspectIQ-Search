@@ -58,7 +58,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data }) => {
     const result: Array<[string, any]> = [];
     
     for (const [key, value] of Object.entries(obj)) {
-      const fullKey = prefix ? `${prefix}.${key}` : key;
+      // Use the key as-is from backend (already mapped to display names)
+      const displayKey = key;
       
       // Skip empty, null, or undefined values
       if (value === null || value === undefined || value === '' || 
@@ -69,10 +70,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data }) => {
       
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         // Recursively flatten nested objects
-        const nested = flattenObject(value, fullKey);
+        const nested = flattenObject(value, '');
         result.push(...nested);
       } else {
-        result.push([fullKey, value]);
+        result.push([displayKey, value]);
       }
     }
     
