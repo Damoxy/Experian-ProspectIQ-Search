@@ -7,7 +7,7 @@
             "command": "powershell",
             "args": [
                 "-Command",
-                "cd backend; .\\venv\\Scripts\\Activate.ps1; cd app; python main.py"
+                "cd backend; .\\venv\\Scripts\\Activate.ps1; cd app; python run.py"
             ],
             "group": "build",
             "isBackground": true,
