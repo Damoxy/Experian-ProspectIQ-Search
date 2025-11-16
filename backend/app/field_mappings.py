@@ -2,11 +2,45 @@
 Field mappings for Experian API response transformation
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
+from collections import OrderedDict
 from value_mappings import transform_response_data
+
+# Field priority configuration - lower numbers show first
+FIELD_PRIORITIES: Dict[str, int] = {
+    # High priority fields (show first in exact order)
+    "First Name": 1,
+    "Last Name": 2,
+    "Address Line 1": 3,
+    "Address City": 4,
+    "State": 5,
+    "Address Postal Code": 6,
+    "Street1": 7,  # Adding the actual field name from results
+    # Medium priority fields will be sorted alphabetically after high priority
+    # Low priority fields will appear at the end
+}
+
+# Fields to completely hide from results
+HIDDEN_FIELDS: List[str] = [
+    "RECORD_ID",
+    "BATCH_ID", 
+    "PROCESS_DATE",
+    "API_VERSION",
+    "DEBUG_INFO",
+    "INTERNAL_ID",
+    "Raw Response",
+    "Processing Timestamp",
+    "Client Id",
+    "Timetracker",
+    "Result Code",
+    "Type",
+    # Add more fields to hide as needed
+]
 
 # Suffix mappings from API field suffixes to user-friendly names
 SUFFIX_MAPPINGS: Dict[str, str] = {
+    "FIRST NAME": "First Name",
+    "LAST NAME": "Last Name",
     "EDUCATION LEVEL MODEL": "Level of Education",
     "PERMARITALSTATUS": "Marital Status", 
     "LIVUCOUNTCHILDREN": "Number of Children in Household",
@@ -450,15 +484,121 @@ def map_field_names(data: Any, parent_key: str = "") -> Any:
     else:
         return data
 
+def filter_hidden_fields(data: Any) -> Any:
+    """
+    Remove fields that should be hidden from the results
+    
+    Args:
+        data: The data structure to filter
+        
+    Returns:
+        Filtered data with hidden fields removed
+    """
+    if isinstance(data, dict):
+        filtered = {}
+        for key, value in data.items():
+            # Skip hidden fields
+            if key not in HIDDEN_FIELDS:
+                # Recursively filter nested objects
+                filtered_value = filter_hidden_fields(value)
+                filtered[key] = filtered_value
+        return filtered
+    
+    elif isinstance(data, list):
+        return [filter_hidden_fields(item) for item in data]
+    
+    else:
+        return data
+
+def sort_fields_by_priority(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Sort dictionary fields by priority configuration
+    
+    Args:
+        data: Dictionary with fields to sort
+        
+    Returns:
+        OrderedDict with fields sorted by priority
+    """
+    if not isinstance(data, dict):
+        return data
+    
+    def get_priority(field_name: str) -> int:
+        # Return configured priority, or 1000 for unspecified fields (medium priority)
+        return FIELD_PRIORITIES.get(field_name, 1000)
+    
+    # Sort fields by priority first, then alphabetically only for non-priority fields
+    def sort_key(item):
+        field_name, _ = item
+        priority = get_priority(field_name)
+        if priority < 1000:  # Has explicit priority
+            return (priority, "")  # Empty string so priority fields don't get secondary alphabetical sort
+        else:  # No explicit priority (medium priority)
+            return (priority, field_name.lower())  # Alphabetical among medium priority fields
+    
+    sorted_items = sorted(data.items(), key=sort_key)
+    
+    # Debug: Print the sorting order
+    print("DEBUG - Field sorting order:")
+    for i, (key, value) in enumerate(sorted_items, 1):
+        priority = get_priority(key)
+        print(f"  {i}. '{key}' (priority: {priority})")
+    
+    # Recursively sort nested dictionaries using OrderedDict for guaranteed order
+    sorted_dict = OrderedDict()
+    for key, value in sorted_items:
+        if isinstance(value, dict):
+            sorted_dict[key] = sort_fields_by_priority(value)
+        elif isinstance(value, list):
+            sorted_dict[key] = [
+                sort_fields_by_priority(item) if isinstance(item, dict) else item 
+                for item in value
+            ]
+        else:
+            sorted_dict[key] = value
+    
+    return sorted_dict
+
+def flatten_for_final_sort(data: Any, result: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Completely flatten nested structure to prepare for final sorting
+    
+    Args:
+        data: Nested data structure
+        result: Accumulator for flattened results
+        
+    Returns:
+        Completely flattened dictionary
+    """
+    if result is None:
+        result = OrderedDict()
+    
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                # Recursively flatten nested objects
+                flatten_for_final_sort(value, result)
+            elif isinstance(value, list):
+                # Handle lists - if they contain dicts, flatten them too
+                for item in value:
+                    if isinstance(item, dict):
+                        flatten_for_final_sort(item, result)
+                    # Skip primitive values in lists for now
+            else:
+                # Add leaf values to result
+                result[key] = value
+    
+    return result
+
 def transform_experian_response(data: Any) -> Any:
     """
-    Complete transformation: field names + value mappings
+    Complete transformation: field names + value mappings + filtering + flattening + final sorting
     
     Args:
         data: Raw Experian API response data
         
     Returns:
-        Fully transformed data with readable field names and values
+        Fully transformed, flattened, and sorted data
     """
     # Step 1: Transform field names to user-friendly labels
     mapped_fields = map_field_names(data)
@@ -466,4 +606,51 @@ def transform_experian_response(data: Any) -> Any:
     # Step 2: Transform field values using value mappings
     transformed_data = transform_response_data(mapped_fields)
     
-    return transformed_data
+    # Step 3: Filter out hidden fields
+    filtered_data = filter_hidden_fields(transformed_data)
+    
+    # Step 4: Completely flatten the nested structure
+    flattened_data = flatten_for_final_sort(filtered_data)
+    
+    # Step 5: Apply final sort to the flattened data
+    final_sorted_data = sort_fields_by_priority(flattened_data)
+    
+    return final_sorted_data
+
+def add_field_priority(field_name: str, priority: int) -> None:
+    """
+    Add or update field priority
+    
+    Args:
+        field_name: Name of the field
+        priority: Priority number (lower = shows first)
+    """
+    FIELD_PRIORITIES[field_name] = priority
+
+def hide_field(field_name: str) -> None:
+    """
+    Add a field to the hidden fields list
+    
+    Args:
+        field_name: Name of the field to hide
+    """
+    if field_name not in HIDDEN_FIELDS:
+        HIDDEN_FIELDS.append(field_name)
+
+def show_field(field_name: str) -> None:
+    """
+    Remove a field from the hidden fields list
+    
+    Args:
+        field_name: Name of the field to show
+    """
+    if field_name in HIDDEN_FIELDS:
+        HIDDEN_FIELDS.remove(field_name)
+
+def get_field_priorities() -> Dict[str, int]:
+    """Get current field priority configuration"""
+    return FIELD_PRIORITIES.copy()
+
+def get_hidden_fields() -> List[str]:
+    """Get current list of hidden fields"""
+    return HIDDEN_FIELDS.copy()

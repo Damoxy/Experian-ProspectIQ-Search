@@ -78,6 +78,19 @@ async def search_experian(search_request: SearchRequest):
             # Transform field names and values to user-friendly format
             transformed_data = transform_experian_response(cleaned_data)
             
+            # Debug: Print final field order being sent to frontend
+            print("DEBUG - Response structure type:", type(transformed_data))
+            if isinstance(transformed_data, dict):
+                print("DEBUG - Final field order sent to frontend (flattened):")
+                for i, key in enumerate(list(transformed_data.keys())[:20], 1):  # Show first 20
+                    print(f"  {i}. '{key}'")
+                if len(transformed_data) > 20:
+                    print(f"  ... and {len(transformed_data) - 20} more fields")
+            elif isinstance(transformed_data, list) and len(transformed_data) > 0 and isinstance(transformed_data[0], dict):
+                print("DEBUG - Final field order sent to frontend (first record):")
+                for i, key in enumerate(transformed_data[0].keys(), 1):
+                    print(f"  {i}. '{key}'")
+            
             return transformed_data
             
     except httpx.TimeoutException:

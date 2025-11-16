@@ -48,7 +48,6 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
 FIELD_TO_MAPPING_KEY: Dict[str, str] = {
     "Level of Education": "EDUCATION_LEVEL",     # Mapped from "EDUCATION LEVEL MODEL"
     "Marital Status": "MARITAL_STATUS",          # Mapped from "PERMARITALSTATUS"
-    # Add more field name mappings here as needed
 }
 
 def map_field_values(data: Any, field_name: str = "") -> Any:
