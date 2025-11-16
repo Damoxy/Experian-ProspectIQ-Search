@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - EXPERIAN_API_URL=${EXPERIAN_API_URL}
+      - EXPERIAN_AUTH_TOKEN=${EXPERIAN_AUTH_TOKEN}
+      - DEBUG=False
+      - ALLOWED_ORIGINS=https://your-frontend-domain.com
+    
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

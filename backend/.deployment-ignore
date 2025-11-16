@@ -1,0 +1,8 @@
+# Azure deployment files
+.azure/
+.vscode/
+.env
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
