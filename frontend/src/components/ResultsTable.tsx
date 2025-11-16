@@ -53,10 +53,12 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data }) => {
     return <Typography variant="body2">{String(value)}</Typography>;
   };
 
-  // Function to flatten nested objects and collect non-empty values
+  // Function to flatten nested objects while preserving order from backend
   const flattenObject = (obj: any, prefix = ''): Array<[string, any]> => {
     const result: Array<[string, any]> = [];
     
+    // Object.entries() preserves insertion order for string keys in modern JavaScript
+    // The backend sort_fields_by_priority ensures the order is correct
     for (const [key, value] of Object.entries(obj)) {
       // Use the key as-is from backend (already mapped to display names)
       const displayKey = key;
@@ -81,6 +83,14 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data }) => {
   };
 
   const flattenedData = flattenObject(data);
+
+  // Debug: Log the field order received on frontend
+  React.useEffect(() => {
+    console.log("DEBUG - Frontend received field order:");
+    flattenedData.forEach(([key, value], index) => {
+      console.log(`  ${index + 1}. '${key}'`);
+    });
+  }, [flattenedData]);
 
   if (flattenedData.length === 0) {
     return (
@@ -118,7 +128,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data }) => {
                 },
               }}
             >
-              <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
+              <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
                 {formatFieldName(key)}
               </TableCell>
               <TableCell>
