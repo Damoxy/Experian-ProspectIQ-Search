@@ -14,7 +14,7 @@ from config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST,
 from models import SearchRequest
 from utils import transform_to_experian_format
 from data_processing import clean_response_data
-from field_mappings import map_field_names
+from field_mappings import transform_experian_response
 
 app = FastAPI(
     title="KC Experian API Integration",
@@ -75,10 +75,23 @@ async def search_experian(search_request: SearchRequest):
             if not cleaned_data:
                 return {"message": "No data found for the provided search criteria"}
             
-            # Map field names to user-friendly names
-            mapped_data = map_field_names(cleaned_data)
+            # Transform field names and values to user-friendly format
+            transformed_data = transform_experian_response(cleaned_data)
             
-            return mapped_data
+            # Debug: Print final field order being sent to frontend
+            print("DEBUG - Response structure type:", type(transformed_data))
+            if isinstance(transformed_data, dict):
+                print("DEBUG - Final field order sent to frontend (flattened):")
+                for i, key in enumerate(list(transformed_data.keys())[:20], 1):  # Show first 20
+                    print(f"  {i}. '{key}'")
+                if len(transformed_data) > 20:
+                    print(f"  ... and {len(transformed_data) - 20} more fields")
+            elif isinstance(transformed_data, list) and len(transformed_data) > 0 and isinstance(transformed_data[0], dict):
+                print("DEBUG - Final field order sent to frontend (first record):")
+                for i, key in enumerate(transformed_data[0].keys(), 1):
+                    print(f"  {i}. '{key}'")
+            
+            return transformed_data
             
     except httpx.TimeoutException:
         raise HTTPException(
