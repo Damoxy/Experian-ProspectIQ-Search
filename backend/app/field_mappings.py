@@ -2,9 +2,12 @@
 Field mappings for Experian API response transformation
 """
 
+import logging
 from typing import Dict, Any, List
 from collections import OrderedDict
 from value_mappings import transform_response_data
+
+logger = logging.getLogger('experian_api.field_mappings')
 
 # Field priority configuration - lower numbers show first
 FIELD_PRIORITIES: Dict[str, int] = {

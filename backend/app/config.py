@@ -30,10 +30,4 @@ if env_origins:
     additional_origins = env_origins.split(",")
     ALLOWED_ORIGINS.extend([origin.strip() for origin in additional_origins])
 
-# Debug logging for environment variables
-print(f"DEBUG: EXPERIAN_API_URL = {EXPERIAN_API_URL}")
-print(f"DEBUG: EXPERIAN_AUTH_TOKEN = {EXPERIAN_AUTH_TOKEN[:10]}...{EXPERIAN_AUTH_TOKEN[-10:] if EXPERIAN_AUTH_TOKEN else 'None'}")
-print(f"DEBUG: HOST = {HOST}")
-print(f"DEBUG: PORT = {PORT}")
-print(f"DEBUG: DEBUG = {DEBUG}")
-print(f"DEBUG: ALLOWED_ORIGINS = {ALLOWED_ORIGINS}")
+# Configuration loaded - debug prints removed in favor of proper logging system
