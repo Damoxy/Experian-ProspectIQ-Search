@@ -21,6 +21,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://mango-meadow-088b06e1e.3.azurestaticapps.net",
 ]
 
 # Add additional origins from environment variable
