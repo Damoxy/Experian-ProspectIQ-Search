@@ -47,8 +47,6 @@ class Settings:
     def _log_configuration(self) -> None:
         """Log configuration for debugging"""
         print(f"DEBUG: EXPERIAN_API_URL = {self.EXPERIAN_API_URL}")
-        print(f"DEBUG: EXPERIAN_AUTH_TOKEN = {self.EXPERIAN_AUTH_TOKEN[:10] + '...' + self.EXPERIAN_AUTH_TOKEN[-10:] if self.EXPERIAN_AUTH_TOKEN else 'None'}")
-        print(f"DEBUG: HOST = {self.HOST}")
         print(f"DEBUG: PORT = {self.PORT}")
         print(f"DEBUG: DEBUG = {self.DEBUG}")
         print(f"DEBUG: ALLOWED_ORIGINS = {self.ALLOWED_ORIGINS}")
