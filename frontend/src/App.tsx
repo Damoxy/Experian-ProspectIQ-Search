@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import SearchForm from './components/SearchForm';
 import ResultsTable from './components/ResultsTable';
+import BackToTop from './components/BackToTop';
 import { searchExperian } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
@@ -81,6 +82,8 @@ function App() {
           Searching Experian database...
         </Typography>
       </Backdrop>
+      
+      <BackToTop />
     </Container>
   );
 }
