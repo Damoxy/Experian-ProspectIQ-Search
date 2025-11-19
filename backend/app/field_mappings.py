@@ -434,6 +434,28 @@ SUFFIX_MAPPINGS: Dict[str, str] = {
     "HH:P1:TrueTouch:NoveltySeekers": "Person 1: TrueTouch: Novelty Seekers",
     "HH:P1:TrueTouch:QualityMatters": "Person 1: TrueTouch: Quality Matters",
     "HH:P1:TrueTouch:RecreationalShoppers": "Person 1: TrueTouch: Recreational Shoppers",
+    "HH:TrueTouch:OrganicAndNatural": "TrueTouch: Organic And Natural",
+    "HH:TrueTouch:SavvyResearchers": "TrueTouch: Savvy Researchers",
+    "HH:TrueTouch:BrandLoyalists": "TrueTouch: Brand Loyalists",
+    "HH:TrueTouch:DealSeekers": "TrueTouch: Deal Seekers",
+    "HH:TrueTouch:RecreationalShoppers": "TrueTouch: Recreational Shoppers",
+    "HH:TrueTouch:Trendsetters": "TrueTouch: Trendsetters",
+    
+    # Dwelling Information
+    "HH:DwellingSizeInLivableUnits": "Dwelling Size in Livable Units",
+    
+    # New Homeowner and Mover Indicators
+    "HH:NewHomeownerIndicator6M": "New Homeowner Indicator 6M",
+    "HH:NewMoverIndicatorLast6Months": "New Mover: Indicator Last 6 Months",
+    
+    # Business Owner Indicator
+    "HH:PersonBusinessOwner": "Person #: Business Owner",
+    
+    # Birth Date Information
+    "HH:PersonBirthYearAndMonth": "Person #: Birth Year And Month",
+    
+    # Ethnic Information
+    "HH:PersonEthnic": "Person #: Ethnic",
 }
 
 

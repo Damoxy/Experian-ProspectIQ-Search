@@ -1625,6 +1625,158 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
         "8": "Highly Unlikely",
         "9": "Extremely Unlikely"
     },
+    
+    # Additional TrueTouch Behavioral Mappings (Likelihood Scale)
+    "TRUETOUCH_ORGANIC_AND_NATURAL": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "TRUETOUCH_SAVVY_RESEARCHERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "TRUETOUCH_BRAND_LOYALISTS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "TRUETOUCH_DEAL_SEEKERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "TRUETOUCH_RECREATIONAL_SHOPPERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "TRUETOUCH_TRENDSETTERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    
+    # Dwelling Information
+    "DWELLING_SIZE_LIVABLE_UNITS": {
+        "A": "SFDU",
+        "B": "Duplex",
+        "C": "Triplex",
+        "D": "4",
+        "E": "5-9",
+        "F": "10-19",
+        "G": "20-49",
+        "H": "50-100",
+        "I": "101+"
+    },
+    
+    # New Homeowner and Mover Indicators
+    "NEW_HOMEOWNER_INDICATOR_6M": {
+        "N": "No",
+        "Y": "Yes"
+    },
+    "NEW_MOVER_INDICATOR_LAST_6_MONTHS": {
+        "N": "No",
+        "Y": "Yes"
+    },
+    
+    # Business Owner Indicator
+    "PERSON_BUSINESS_OWNER": {
+        "U": "Unknown",
+        "Y": "Yes"
+    },
+    
+    # Ethnic Information
+    "PERSON_ETHNIC": {
+        "00": "Unknown", "01": "English", "02": "Scottish", "03": "Danish", "04": "Swedish",
+        "05": "Norwegian", "06": "Finnish", "07": "Icelandic", "08": "Dutch", "09": "Belgian",
+        "10": "German", "11": "Austrian", "12": "Hungarian", "13": "Czech", "14": "Slovak",
+        "15": "Irish", "16": "Welsh", "17": "French", "18": "Swiss", "19": "Italian",
+        "20": "Hispanic", "21": "Portuguese", "22": "Polish", "23": "Estonian", "24": "Latvian",
+        "25": "Lithuanian", "26": "Ukrainian", "27": "Georgian", "28": "Byelorussian", "29": "Armenian",
+        "30": "Russian", "31": "Turkish", "32": "Kurdish", "33": "Greek", "34": "Persian",
+        "35": "Moldovan", "36": "Bulgarian", "37": "Romanian", "38": "Albanian", "39": "Native American",
+        "40": "Slovenian", "41": "Croat", "42": "Serb", "43": "Bosniak", "44": "Azerbaijani",
+        "45": "Kazakh", "46": "Afghan", "47": "Pakistani", "48": "Bengali", "49": "Indonesian",
+        "50": "Asian Indian", "51": "Burmese (Myanmar)", "52": "Mongolian", "53": "Chinese", "55": "Taiwanese",
+        "56": "Korean", "57": "Japanese", "58": "Thai", "59": "Malaysian", "60": "Laotian",
+        "61": "Khmer", "62": "Vietnamese", "63": "Sri Lankan", "64": "Uzbek", "65": "Hmong",
+        "66": "Jewish", "67": "Aleut", "68": "Hebrew", "70": "Arab", "71": "Brazilian",
+        "72": "Turkmen", "73": "Tajik", "74": "Kirghiz", "75": "Saudi", "76": "Iraqi",
+        "77": "Libyan", "78": "Egyptian", "79": "Rwandan", "7B": "Djiboutian", "7C": "Manx",
+        "7E": "Nepalese", "7F": "Samoan", "7G": "Mauritanian", "7H": "Inuit", "7M": "Trinidadian",
+        "7N": "Southern African", "80": "Tongan", "81": "Senegalese", "82": "Malawian", "83": "South Sudanese",
+        "84": "Moroccan", "85": "African American", "86": "Kenyan", "87": "Nigerian (Nigeria)", "88": "Ghanaian",
+        "89": "Zambian", "8A": "Congolese", "8B": "Central African (Central African Republic)", "8C": "Togolese", "8D": "Bahraini",
+        "8E": "Qatari", "8F": "Guyanese", "8G": "Tibetan", "8H": "Fijian", "8I": "Swazi",
+        "8J": "Zulu", "8K": "Xhosa", "8M": "Afrikaner", "8N": "Liberian", "8O": "Comoran",
+        "8P": "Beninese", "8Q": "Burkinabe (Burkina Faso)", "8R": "Nigerian (Niger)", "8S": "Akan", "8T": "Swahili",
+        "8U": "Haitian", "8V": "Malian", "8W": "Jamaican", "8X": "Hausa", "8Y": "African Continental",
+        "91": "Surinamese", "92": "Mozambican (Mozambique)", "93": "Ivorian (Ivory Coast)", "94": "Bhutanese", "95": "Ethiopian",
+        "96": "Ugandan", "97": "Batswana (Botswana)", "98": "Cameroonian", "99": "Zimbabwean", "9A": "Namibian",
+        "9B": "Burundi", "9C": "Tanzanian", "9D": "Gambian", "9E": "Somali", "9F": "Macedonian",
+        "9G": "Chadian", "9H": "Gabonese", "9I": "Angolan", "9J": "Chechen", "9K": "Igbo",
+        "9L": "Yoruba", "9M": "Algerian", "9N": "Filipino", "9O": "Sotho (Lesotho)", "9P": "Tunisian",
+        "9Q": "Hawaiian", "9R": "Malagasy (Madagascar)", "9T": "Sierra Leonean", "9U": "Kuwaiti", "9V": "Yemeni",
+        "9W": "Guinean (Guinea-Bissau)", "9X": "Papua New Guinean", "9Y": "Equatorial Guinean", "9Z": "Syrian",
+        "A1": "African American (Arabic)", "A2": "African American (Arabic)", "A3": "African American (Arabic)",
+        "A4": "African American (Arabic)", "A5": "African American (Arabic)", "D1": "African American (Dutch)",
+        "D2": "African American (Dutch)", "D3": "African American (Dutch)", "D4": "African American (Dutch)",
+        "D5": "African American (Dutch)", "E1": "African American (English)", "E2": "African American (English)",
+        "E3": "African American (English)", "E4": "African American (English)", "E5": "African American (English)",
+        "F1": "African American (French)", "F2": "African American (French)", "F3": "African American (French)",
+        "F4": "African American (French)", "F5": "African American (French)", "I1": "African American (Irish)",
+        "I2": "African American (Irish)", "I3": "African American (Irish)", "I4": "African American (Irish)",
+        "I5": "African American (Irish)", "S1": "African American (Scotch)", "S2": "African American (Scotch)",
+        "S3": "African American (Scotch)", "S4": "African American (Scotch)", "S5": "African American (Scotch)",
+        "U1": "African American (Unknown)", "U2": "African American (Unknown)", "U3": "African American (Unknown)",
+        "U4": "African American (Unknown)", "U5": "African American (Unknown)", "W1": "African American (Welsh)",
+        "W2": "African American (Welsh)", "W3": "African American (Welsh)", "W4": "African American (Welsh)",
+        "W5": "African American (Welsh)", "blank": "Null", "UC": "Uncodable", "ZZ": "Multi-Ethnic"
+    },
 }
 
 # Field name to mapping key lookup (using mapped field names)
@@ -1969,6 +2121,30 @@ FIELD_TO_MAPPING_KEY: Dict[str, str] = {
         "Person 1: TrueTouch: Novelty Seekers": "P1_TRUETOUCH_NOVELTY_SEEKERS",
         "Person 1: TrueTouch: Quality Matters": "P1_TRUETOUCH_QUALITY_MATTERS",
         "Person 1: TrueTouch: Recreational Shoppers": "P1_TRUETOUCH_RECREATIONAL_SHOPPERS",
+        
+        # Additional TrueTouch Behavioral Fields
+        "TrueTouch: Organic And Natural": "TRUETOUCH_ORGANIC_AND_NATURAL",
+        "TrueTouch: Savvy Researchers": "TRUETOUCH_SAVVY_RESEARCHERS",
+        "TrueTouch: Brand Loyalists": "TRUETOUCH_BRAND_LOYALISTS",
+        "TrueTouch: Deal Seekers": "TRUETOUCH_DEAL_SEEKERS",
+        "TrueTouch: Recreational Shoppers": "TRUETOUCH_RECREATIONAL_SHOPPERS",
+        "TrueTouch: Trendsetters": "TRUETOUCH_TRENDSETTERS",
+        
+        # Dwelling Information
+        "Dwelling Size in Livable Units": "DWELLING_SIZE_LIVABLE_UNITS",
+        
+        # New Homeowner and Mover Indicators
+        "New Homeowner Indicator 6M": "NEW_HOMEOWNER_INDICATOR_6M",
+        "New Mover: Indicator last 6 months": "NEW_MOVER_INDICATOR_LAST_6_MONTHS",
+        
+        # Business Owner Indicator
+        "Person #: Business Owner": "PERSON_BUSINESS_OWNER",
+        
+        # Birth Date Information
+        "Person #: Birth Year and Month": "PERSON_BIRTH_YEAR_AND_MONTH",
+        
+        # Ethnic Information
+        "Person #: Ethnic - Ethnic": "PERSON_ETHNIC",
 }
 
 def map_field_values(data: Any, field_name: str = "") -> Any:
@@ -2050,6 +2226,29 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
                 day_formatted = str(int(day))
                 
                 return f"{month_name} {day_formatted}, {year}"
+            else:
+                return data
+        except (ValueError, IndexError):
+            # If conversion fails, fall back to original value
+            return data
+    
+    # Special handling for birth year and month fields (MMYYYY format)
+    if mapping_key == "PERSON_BIRTH_YEAR_AND_MONTH":
+        try:
+            # Convert MMYYYY to readable date format
+            if len(value_str) == 6 and value_str.isdigit():
+                month = value_str[:2]
+                year = value_str[2:]
+                
+                # Convert month number to name
+                month_names = {
+                    "01": "January", "02": "February", "03": "March", "04": "April",
+                    "05": "May", "06": "June", "07": "July", "08": "August",
+                    "09": "September", "10": "October", "11": "November", "12": "December"
+                }
+                
+                month_name = month_names.get(month, month)
+                return f"{month_name} {year}"
             else:
                 return data
         except (ValueError, IndexError):
