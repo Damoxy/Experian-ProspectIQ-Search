@@ -418,41 +418,41 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
                     "U": "Unknown",
                 },
                 "MORTGAGE_HOME_PURCHASE_PURCHASE_AMOUNT_RANGES": {
-                    "A": "1,000-9,999",
-                    "B": "10,000-24,999",
-                    "C": "25,000-39,999",
-                    "D": "40,000-59,999",
-                    "E": "60,000-79,999",
-                    "F": "80,000-99,999",
-                    "G": "100,000-119,999",
-                    "H": "120,000-139,999",
-                    "I": "140,000-159,999",
-                    "J": "160,000-199,999",
-                    "K": "200,000-249,999",
-                    "L": "250,000-349,999",
-                    "M": "350,000-449,999",
-                    "N": "450,000-749,999",
-                    "O": "750,000-999,999",
-                    "P": "1MM+",
+                    "A": "$1,000-$9,999",
+                    "B": "$10,000-$24,999",
+                    "C": "$25,000-$39,999",
+                    "D": "$40,000-$59,999",
+                    "E": "$60,000-$79,999",
+                    "F": "$80,000-$99,999",
+                    "G": "$100,000-$119,999",
+                    "H": "$120,000-$139,999",
+                    "I": "$140,000-$159,999",
+                    "J": "$160,000-$199,999",
+                    "K": "$200,000-$249,999",
+                    "L": "$250,000-$349,999",
+                    "M": "$350,000-$449,999",
+                    "N": "$450,000-$749,999",
+                    "O": "$750,000-$999,999",
+                    "P": "$1MM+",
                     "U": "Unknown",
                 },
                 "MORTGAGE_HOME_PURCHASE_MORTGAGE_AMOUNT_RANGES": {
-                    "A": "1,000-9,999",
-                    "B": "10,000-24,999",
-                    "C": "25,000-39,999",
-                    "D": "40,000-59,999",
-                    "E": "60,000-79,999",
-                    "F": "80,000-99,999",
-                    "G": "100,000-119,999",
-                    "H": "120,000-139,999",
-                    "I": "140,000-159,999",
-                    "J": "160,000-199,999",
-                    "K": "200,000-249,999",
-                    "L": "250,000-349,999",
-                    "M": "350,000-449,999",
-                    "N": "450,000-749,999",
-                    "O": "750,000-999,999",
-                    "P": "1MM+",
+                    "A": "$1,000-$9,999",
+                    "B": "$10,000-$24,999",
+                    "C": "$25,000-$39,999",
+                    "D": "$40,000-$59,999",
+                    "E": "$60,000-$79,999",
+                    "F": "$80,000-$99,999",
+                    "G": "$100,000-$119,999",
+                    "H": "$120,000-$139,999",
+                    "I": "$140,000-$159,999",
+                    "J": "$160,000-$199,999",
+                    "K": "$200,000-$249,999",
+                    "L": "$250,000-$349,999",
+                    "M": "$350,000-$449,999",
+                    "N": "$450,000-$749,999",
+                    "O": "$750,000-$999,999",
+                    "P": "$1MM+",
                     "U": "Unknown",
                 },
         # Additional Reading Fields
@@ -1713,6 +1713,25 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
         "I": "101+"
     },
     
+    # Mortgage Payment Information
+    "ESTIMATED_CURRENTLY_MONTHLY_MORTGAGE": {
+        "A": "$1-199",
+        "B": "$200-299",
+        "C": "$300-399",
+        "D": "$400-499",
+        "E": "$500-599",
+        "F": "$600-699",
+        "G": "$700-799",
+        "H": "$800-899",
+        "I": "$900-999",
+        "J": "$1,000-1,199",
+        "K": "$1,200-1,399",
+        "L": "$1,400-1,699",
+        "M": "$1,700-1,999",
+        "N": "$2,000+",
+        "U": "Unknown"
+    },
+    
     # New Homeowner and Mover Indicators
     "NEW_HOMEOWNER_INDICATOR_6M": {
         "N": "No",
@@ -1777,6 +1796,42 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
         "W2": "African American (Welsh)", "W3": "African American (Welsh)", "W4": "African American (Welsh)",
         "W5": "African American (Welsh)", "blank": "Null", "UC": "Uncodable", "ZZ": "Multi-Ethnic"
     },
+    
+    # Credit Cards Lifestyle Mappings
+    "CREDIT_CARDS_AMERICAN_EXPRESS_PREMIUM": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_AMERICAN_EXPRESS_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_DISCOVER_PREMIUM": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_DISCOVER_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_MASTERCARD_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_OTHER_CARD_PREMIUM": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_OTHER_CARD_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_STORE_OR_RETAIL_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    "CREDIT_CARDS_VISA_REGULAR": {"U": "Unknown", "Y": "Yes"},
+    
+    # Financial Investment Lifestyle Mappings
+    "FINANCIAL_CDS_MONEY_MKT_CUR": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_IRAS_CURRENTLY": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_LIFE_INSUR_CUR": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_MUTL_FUNDS_FUT_INT": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_MUTUAL_FUNDS_CURRENTLY": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_OTHR_INVEST_CUR": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_OTHR_INVEST_FUTURE": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_REAL_ESTATE_FUT": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_REAL_ESTATE_CURRENTLY": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_STKS_BOND_CUR": {"U": "Unknown", "Y": "Yes"},
+    "FINANCIAL_STKS_BOND_FUT": {"U": "Unknown", "Y": "Yes"},
+    
+    # Pets Lifestyle Mappings
+    "PETS_OWN_A_CAT": {"U": "Unknown", "Y": "Yes"},
+    "PETS_OWN_A_DOG": {"U": "Unknown", "Y": "Yes"},
+    "PETS_OWN_A_PET": {"U": "Unknown", "Y": "Yes"},
+    
+    # Military/Government Veteran Mapping
+    "MILITARY_GOV_VETERAN": {"U": "Unknown", "Y": "Yes"},
+    
+    # Mortgage Term Mappings (format as months)
+    "HOME_MORTGAGE_TERM": "format_as_months",
+    "INVESTMENT_PROPERTY_MORTGAGE_TERM": "format_as_months",
 }
 
 # Field name to mapping key lookup (using mapped field names)
@@ -2133,6 +2188,9 @@ FIELD_TO_MAPPING_KEY: Dict[str, str] = {
         # Dwelling Information
         "Dwelling Size in Livable Units": "DWELLING_SIZE_LIVABLE_UNITS",
         
+        # Mortgage Payment Information
+        "Estimated Currently Monthly Mortgage": "ESTIMATED_CURRENTLY_MONTHLY_MORTGAGE",
+        
         # New Homeowner and Mover Indicators
         "New Homeowner Indicator 6M": "NEW_HOMEOWNER_INDICATOR_6M",
         "New Mover: Indicator last 6 months": "NEW_MOVER_INDICATOR_LAST_6_MONTHS",
@@ -2145,6 +2203,46 @@ FIELD_TO_MAPPING_KEY: Dict[str, str] = {
         
         # Ethnic Information
         "Person #: Ethnic - Ethnic": "PERSON_ETHNIC",
+        
+    # Mortgage Payment Fields
+    "Average monthly payment on open first mortgage trades reported in the last 6 months": "AVG_MTHLY_PYMT_1ST_MORTGAGE",
+    "Average monthly payment on open second mortgage trades reported in the last 6 months": "AVG_MTHLY_PYMT_2ND_MORTGAGE",
+    
+    # Credit Cards Lifestyle Fields
+    "HH:Lifestyl:Credit Cards:American Express/Premium": "CREDIT_CARDS_AMERICAN_EXPRESS_PREMIUM",
+    "HH:Lifestyl:Credit Cards:American Express/Regular": "CREDIT_CARDS_AMERICAN_EXPRESS_REGULAR",
+    "HH:Lifestyl:Credit Cards:Discover/Premium": "CREDIT_CARDS_DISCOVER_PREMIUM",
+    "HH:Lifestyl:Credit Cards:Discover/Regular": "CREDIT_CARDS_DISCOVER_REGULAR",
+    "HH:Lifestyl:Credit Cards:Mastercard/Regular": "CREDIT_CARDS_MASTERCARD_REGULAR",
+    "HH:Lifestyl:Credit Cards:Other Card/Premium": "CREDIT_CARDS_OTHER_CARD_PREMIUM",
+    "HH:Lifestyl:Credit Cards:Other Card/Regular": "CREDIT_CARDS_OTHER_CARD_REGULAR",
+    "HH:Lifestyl:Credit Cards:Store Or Retail/Regular": "CREDIT_CARDS_STORE_OR_RETAIL_REGULAR",
+    "HH:Lifestyl:Credit Cards:Visa/Regular": "CREDIT_CARDS_VISA_REGULAR",
+    
+    # Financial Investment Lifestyle Fields
+    "HH:Lifestyl:Financial:Cds/Money Mkt - Cur": "FINANCIAL_CDS_MONEY_MKT_CUR",
+    "HH:Lifestyl:Financial:Iras - Currently": "FINANCIAL_IRAS_CURRENTLY",
+    "HH:Lifestyl:Financial:Life Insur. - Cur": "FINANCIAL_LIFE_INSUR_CUR",
+    "HH:Lifestyl:Financial:Mutl Funds/ - Fut Int": "FINANCIAL_MUTL_FUNDS_FUT_INT",
+    "HH:Lifestyl:Financial:Mutual Funds - Currently": "FINANCIAL_MUTUAL_FUNDS_CURRENTLY",
+    "HH:Lifestyl:Financial:Othr Invest - Cur": "FINANCIAL_OTHR_INVEST_CUR",
+    "HH:Lifestyl:Financial:Othr Invest - Future": "FINANCIAL_OTHR_INVEST_FUTURE",
+    "HH:Lifestyl:Financial:Real Estate - Fut": "FINANCIAL_REAL_ESTATE_FUT",
+    "HH:Lifestyl:Financial:Real Estate- Currently": "FINANCIAL_REAL_ESTATE_CURRENTLY",
+    "HH:Lifestyl:Financial:Stks/Bond - Cur": "FINANCIAL_STKS_BOND_CUR",
+    "HH:Lifestyl:Financial:Stks/Bond - Fut": "FINANCIAL_STKS_BOND_FUT",
+    
+    # Pets Lifestyle Fields
+    "HH:Lifestyl:Pets:Own A Cat": "PETS_OWN_A_CAT",
+    "HH:Lifestyl:Pets:Own A Dog": "PETS_OWN_A_DOG",
+    "HH:Lifestyl:Pets:Own A Pet": "PETS_OWN_A_PET",
+    
+    # Military/Government Veteran Field
+    "HH:Lifestyl:Military/Gov:Vetern": "MILITARY_GOV_VETERAN",
+    
+    # Mortgage Term Fields
+    "Home: Mortgage Term": "HOME_MORTGAGE_TERM",
+    "Investment Property: Mortgage Term": "INVESTMENT_PROPERTY_MORTGAGE_TERM",
 }
 
 def map_field_values(data: Any, field_name: str = "") -> Any:
@@ -2192,15 +2290,33 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
         "DSE_EDUCATION",
         "DSE_TRAVEL",
         "DSE_DONATION",
-        "DSE_FURNISHINGS"
+        "DSE_FURNISHINGS",
+        # Mortgage Payment Fields (values come with leading zeros and need division by 100)
+        "AVG_MTHLY_PYMT_1ST_MORTGAGE",
+        "AVG_MTHLY_PYMT_2ND_MORTGAGE"
     ]:
         try:
-            # Convert to integer, then format as full dollar amount with commas
-            dollar_value = int(value_str)
-            if dollar_value == 0:
-                return "$0"
+            # Handle mortgage payment fields that need division by 100 (0000064560 -> $6,456)
+            if mapping_key in ["AVG_MTHLY_PYMT_1ST_MORTGAGE", "AVG_MTHLY_PYMT_2ND_MORTGAGE"]:
+                dollar_value = int(value_str) / 100
+                if dollar_value == 0:
+                    return "$0"
+                else:
+                    return f"${dollar_value:,.0f}"
+            # Handle fields that should be formatted in thousands (K format)
+            elif mapping_key in ["REAL_ESTATE_AVAILABLE_EQUITY_AMOUNT", "REAL_ESTATE_ESTIMATED_CURRENT_MORTGAGE_AMOUNT", "INVESTMENT_PROPERTY_PURCHASE_AMOUNT"]:
+                dollar_value = int(value_str)
+                if dollar_value == 0:
+                    return "$0"
+                else:
+                    return f"${dollar_value:,}k"
             else:
-                return f"${dollar_value:,}"
+                # For other dollar fields, use value as-is
+                dollar_value = int(value_str)
+                if dollar_value == 0:
+                    return "$0"
+                else:
+                    return f"${dollar_value:,}"
         except ValueError:
             # If conversion fails, fall back to original value
             return data
@@ -2252,6 +2368,16 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
             else:
                 return data
         except (ValueError, IndexError):
+            # If conversion fails, fall back to original value
+            return data
+    
+    # Special handling for mortgage term fields (format as months)
+    if mapping_key in ["HOME_MORTGAGE_TERM", "INVESTMENT_PROPERTY_MORTGAGE_TERM"]:
+        try:
+            # Remove leading zeros and format as months
+            numeric_value = int(value_str)
+            return f"{numeric_value} months"
+        except (ValueError, TypeError):
             # If conversion fails, fall back to original value
             return data
     
