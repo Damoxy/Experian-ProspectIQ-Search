@@ -1,132 +1,63 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import httpx
-import uvicorn
+"""
+Main FastAPI application with clean separation of concerns
+"""
 
-# Import our modules - using absolute imports when running as module
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 import os
 import sys
 
 # Add the current directory to Python path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import EXPERIAN_API_URL, EXPERIAN_AUTH_TOKEN, ALLOWED_ORIGINS, HOST, PORT, DEBUG
-from models import SearchRequest
-from utils import transform_to_experian_format
-from data_processing import clean_response_data
-from field_mappings import transform_experian_response
+from config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
+from api.routes import router
+from core.logging_config import setup_logging
 
-app = FastAPI(
-    title="KC Experian API Integration",
-    description="FastAPI backend for Experian contact and address search",
-    version="1.0.0"
-)
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Initialize logging
+logger = setup_logging(DEBUG)
 
 
+def create_app() -> FastAPI:
+    """Factory function to create FastAPI application"""
+    app = FastAPI(
+        title="KC Experian API Integration",
+        description="FastAPI backend for Experian contact and address search",
+        version="1.0.0"
+    )
+
+    # Configure CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Include API routes
+    app.include_router(router)
+    
+    # Log application startup
+    logger.info("FastAPI application starting up")
+    logger.info(f"Debug mode: {DEBUG}")
+    logger.info(f"Server will run on {HOST}:{PORT}")
+    logger.info(f"CORS origins: {ALLOWED_ORIGINS}")
+    
+    return app
+
+
+# Create app instance
+app = create_app()
 
 
 
-@app.post("/search")
-async def search_experian(search_request: SearchRequest):
-    """
-    Search Experian database for contact and address information
-    """
-    try:
-        # Transform input to Experian format
-        experian_payload = transform_to_experian_format(search_request)
-        
-        # Prepare headers for Experian API
-        headers = {
-            "Auth-Token": EXPERIAN_AUTH_TOKEN,
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        
-        # Make request to Experian API
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                EXPERIAN_API_URL,
-                json=experian_payload.dict(),
-                headers=headers
-            )
-            
-            # Check if request was successful
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Experian API error: {response.text}"
-                )
-            
-            # Parse response
-            experian_data = response.json()
-            
-            # Clean the response data
-            cleaned_data = clean_response_data(experian_data)
-            
-            if not cleaned_data:
-                return {"message": "No data found for the provided search criteria"}
-            
-            # Transform field names and values to user-friendly format
-            transformed_data = transform_experian_response(cleaned_data)
-            
-            # Debug: Print final field order being sent to frontend
-            print("DEBUG - Response structure type:", type(transformed_data))
-            if isinstance(transformed_data, dict):
-                print("DEBUG - Final field order sent to frontend (flattened):")
-                for i, key in enumerate(list(transformed_data.keys())[:20], 1):  # Show first 20
-                    print(f"  {i}. '{key}'")
-                if len(transformed_data) > 20:
-                    print(f"  ... and {len(transformed_data) - 20} more fields")
-            elif isinstance(transformed_data, list) and len(transformed_data) > 0 and isinstance(transformed_data[0], dict):
-                print("DEBUG - Final field order sent to frontend (first record):")
-                for i, key in enumerate(transformed_data[0].keys(), 1):
-                    print(f"  {i}. '{key}'")
-            
-            return transformed_data
-            
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=408,
-            detail="Request to Experian API timed out"
-        )
-    except httpx.RequestError as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Error connecting to Experian API: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}"
-        )
 
-@app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "message": "KC Experian API Integration",
-        "version": "1.0.0",
-        "endpoints": {
-            "search": "/search",
-            "health": "/health"
-        }
-    }
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "experian-api-integration"}
 
 if __name__ == "__main__":
+    logger.info(f"Starting server on {HOST}:{PORT}")
+    logger.info(f"Debug mode: {DEBUG}")
     uvicorn.run(
         "main:app",
         host=HOST,

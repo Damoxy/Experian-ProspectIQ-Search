@@ -2,7 +2,10 @@
 Data processing utilities for Experian API responses
 """
 
+import logging
 from typing import Any
+
+logger = logging.getLogger('experian_api.data_processing')
 
 def clean_response_data(data: Any) -> Any:
     """
@@ -15,6 +18,8 @@ def clean_response_data(data: Any) -> Any:
     Returns:
         Cleaned data structure with empty values removed
     """
+    logger.debug(f"Cleaning data of type: {type(data)}")
+    
     if isinstance(data, dict):
         cleaned = {}
         for key, value in data.items():
