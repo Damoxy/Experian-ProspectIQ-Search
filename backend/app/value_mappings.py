@@ -733,6 +733,228 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
             "Y": "Yes",
         },
         
+        # Cultural Arts and Electronics/Gadgets
+        "HH_ACTY_INT_CLTRL_ARTS_INTEREST_IN_CULTURAL_ARTS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_COMPACT_DISC_PLAYER": {
+            "U": "Unknown", 
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_CELL_PHONE": {
+            "U": "Unknown",
+            "Y": "Yes", 
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_DIGITAL_CAMERA": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_DVD_PLAYER": {
+            "U": "Unknown", 
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_HDTV": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_INTEREST_IN_ELECTRONICS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_PDA_BLACKBERRY": {
+            "U": "Unknown",
+            "Y": "Yes", 
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_SATELLITE_DISH": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_VIDEO_CAMERA": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_ELCTRNCS_GDGTS_VIDEO_GAME_SYSTEM": {
+            "U": "Unknown", 
+            "Y": "Yes",
+        },
+        
+        # Magazine Interest Fields
+        "HH_ACTY_INT_MAGAZINES_BUSINESS_AND_FINANCE": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_CHILDRENS_MAGAZINES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_COMPUTER_ELECTRONICS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_CRAFTS_GAMES_AND_HOBBIES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_CURRENT_EVENTS_NEWS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_FITNESS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_FOOD_WINE_COOKING": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_GARDENING_MAGAZINES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_HUNTING_AND_FISHING": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_MENS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_MUSIC": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_SPORTS_MAGAZINES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_SUBSCRIPTION": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_TRAVEL": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_MAGAZINES_WOMENS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
+        # PC & Internet Fields
+        "HH_ACTY_INT_PC_INTERNET_OWN_COMPUTER": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_PC_INTERNET_PLAN_TO_BUY_COMPUTER": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_PC_INTERNET_USE_INTERNET_SERVICE": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_PC_INTERNET_USEDSL_HISPD": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
+        # Reading Fields
+        "HH_ACTY_INT_READING_COMPUTER": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
+        # Sweepstakes Fields
+        "HH_ACTY_INT_SWEEPSTAKES_LOTTERIES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_SWEEPSTAKES_SWEEPSTAKES": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
+        # Travel Fields
+        "HH_ACTY_INT_TRAVEL_BUSINESS_TRAVEL": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_CRUISE": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_DOMESTIC": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_INTERNATIONAL": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_PERSONAL_TRAVEL": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_RECREATIONAL_VEHICLE": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_TIME_SHARE": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_ACTY_INT_TRAVEL_WOULD_ENJOY_RV_TRAVEL": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
+        # Lifestyle Fields
+        "HH_LIFESTYL_AFFILIATION_MEMBER_MUSIC_CLUB": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_BUYING_INTEREST_COMP_ELEC": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_BUYING_INTEREST_SPORTS_RELATED": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_ENTERTAINMENT_BUY_PRE_RECORDED_VIDEOS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_ENTERTAINMENT_WATCH_CABLE_TV": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_ENTERTAINMENT_WATCH_VIDEOS": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_FINANCIAL_IRAS_FUTURE_INTEREST": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_GRANDKIDS_PROUD_GRANDPARENT": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_PETS_OWN_A_CAT": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_PETS_OWN_A_DOG": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        "HH_LIFESTYL_PETS_OWN_A_PET": {
+            "U": "Unknown",
+            "Y": "Yes",
+        },
+        
         # Lifestyle Categories
         "LIFESTYLE_INTERESTS_GAMBLING_PROPENSITY": {
             "U": "Unknown",
@@ -1118,6 +1340,291 @@ VALUE_MAPPINGS: Dict[str, Dict[str, str]] = {
         "INVESTMENT_PROPERTY_PURCHASE_AMOUNT": {
             # Dollar values in thousands - add "K" suffix
         },
+        
+    # DSE (Direct Spend Estimate) fields - Dollar amounts from 00010 to 99000
+    "DSE_DINE_OUT": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_ALCOHOL_WINE": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_APPAREL": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_ENTERTAINMENT": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_PERSONAL": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_READING": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_EDUCATION": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_TRAVEL": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_DONATION": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    "DSE_FURNISHINGS": {
+        "00000": "$0",
+        "00010": "$10",
+        "00020": "$20",
+        "00050": "$50",
+        "00100": "$100",
+        "00250": "$250",
+        "00500": "$500",
+        "01000": "$1,000",
+        "02500": "$2,500",
+        "05000": "$5,000",
+        "10000": "$10,000",
+        "15000": "$15,000",
+        "20000": "$20,000",
+        "25000": "$25,000",
+        "30000": "$30,000",
+        "99000": "$99,000",
+        "": "Not Available",
+        " ": "Not Available"
+    },
+    
+    # Person 1 TrueTouch Behavioral Mappings (Likelihood Scale)
+    "P1_TRUETOUCH_DEAL_SEEKERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "P1_TRUETOUCH_IN_THE_MOMENT_SHOPPERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "P1_TRUETOUCH_MAINSTREAM_ADOPTERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "P1_TRUETOUCH_NOVELTY_SEEKERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "P1_TRUETOUCH_QUALITY_MATTERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
+    "P1_TRUETOUCH_RECREATIONAL_SHOPPERS": {
+        "0": "Unknown",
+        "1": "Extremely Likely",
+        "2": "Highly Likely",
+        "3": "Very Likely",
+        "4": "Somewhat Likely",
+        "5": "Likely",
+        "6": "Somewhat Unlikely",
+        "7": "Very Unlikely",
+        "8": "Highly Unlikely",
+        "9": "Extremely Unlikely"
+    },
 }
 
 # Field name to mapping key lookup (using mapped field names)
@@ -1373,6 +1880,95 @@ FIELD_TO_MAPPING_KEY: Dict[str, str] = {
         "Home: Home Purchase Price": "HOME_PURCHASE_PRICE",  # Duplicate mapping for consistency
         "Home Purchase Mortgage Amount": "HOME_PURCHASE_MORTGAGE_AMOUNT",
         "Investment Property: Purchase Amount": "INVESTMENT_PROPERTY_PURCHASE_AMOUNT",
+        
+        # Cultural Arts and Electronics/Gadgets Fields
+        "HH:Acty/Int:Cltrl/Arts:Interest In Cultrual Arts": "HH_ACTY_INT_CLTRL_ARTS_INTEREST_IN_CULTURAL_ARTS",
+        "HH:Acty/Int:Elctrncs/Gdgts:Compact Disc Player": "HH_ACTY_INT_ELCTRNCS_GDGTS_COMPACT_DISC_PLAYER", 
+        "HH:Acty/Int:Elctrncs/Gdgts:Cell Phone": "HH_ACTY_INT_ELCTRNCS_GDGTS_CELL_PHONE",
+        "HH:Acty/Int:Elctrncs/Gdgts:Digital Camera": "HH_ACTY_INT_ELCTRNCS_GDGTS_DIGITAL_CAMERA",
+        "HH:Acty/Int:Elctrncs/Gdgts:Dvd Player": "HH_ACTY_INT_ELCTRNCS_GDGTS_DVD_PLAYER",
+        "HH:Acty/Int:Elctrncs/Gdgts:Hdtv": "HH_ACTY_INT_ELCTRNCS_GDGTS_HDTV",
+        "HH:Acty/Int:Elctrncs/Gdgts:Interest In Electronics": "HH_ACTY_INT_ELCTRNCS_GDGTS_INTEREST_IN_ELECTRONICS",
+        "HH:Acty/Int:Elctrncs/Gdgts:Pda/Blackberry": "HH_ACTY_INT_ELCTRNCS_GDGTS_PDA_BLACKBERRY",
+        "HH:Acty/Int:Elctrncs/Gdgts:Satellite Dish": "HH_ACTY_INT_ELCTRNCS_GDGTS_SATELLITE_DISH",
+        "HH:Acty/Int:Elctrncs/Gdgts:Video Camera": "HH_ACTY_INT_ELCTRNCS_GDGTS_VIDEO_CAMERA",
+        "HH:Acty/Int:Elctrncs/Gdgts:Video Game System": "HH_ACTY_INT_ELCTRNCS_GDGTS_VIDEO_GAME_SYSTEM",
+        
+        # Magazine Interest Fields
+        "HH:Acty/Int:Magazines:Business And Finance": "HH_ACTY_INT_MAGAZINES_BUSINESS_AND_FINANCE",
+        "HH:Acty/Int:Magazines:Childrens Magazines": "HH_ACTY_INT_MAGAZINES_CHILDRENS_MAGAZINES",
+        "HH:Acty/Int:Magazines:Computer/Electronics": "HH_ACTY_INT_MAGAZINES_COMPUTER_ELECTRONICS",
+        "HH:Acty/Int:Magazines:Crafts Games And Hobbies": "HH_ACTY_INT_MAGAZINES_CRAFTS_GAMES_AND_HOBBIES",
+        "HH:Acty/Int:Magazines:Current Events/News": "HH_ACTY_INT_MAGAZINES_CURRENT_EVENTS_NEWS",
+        "HH:Acty/Int:Magazines:Fitness": "HH_ACTY_INT_MAGAZINES_FITNESS",
+        "HH:Acty/Int:Magazines:Food/Wine/Cooking": "HH_ACTY_INT_MAGAZINES_FOOD_WINE_COOKING",
+        "HH:Acty/Int:Magazines:Gardening Magazines": "HH_ACTY_INT_MAGAZINES_GARDENING_MAGAZINES",
+        "HH:Acty/Int:Magazines:Hunting And Fishing": "HH_ACTY_INT_MAGAZINES_HUNTING_AND_FISHING",
+        "HH:Acty/Int:Magazines:Mens": "HH_ACTY_INT_MAGAZINES_MENS",
+        "HH:Acty/Int:Magazines:Music": "HH_ACTY_INT_MAGAZINES_MUSIC",
+        "HH:Acty/Int:Magazines:Sports Magazines": "HH_ACTY_INT_MAGAZINES_SPORTS_MAGAZINES",
+        "HH:Acty/Int:Magazines:Subscription": "HH_ACTY_INT_MAGAZINES_SUBSCRIPTION",
+        "HH:Acty/Int:Magazines:Travel": "HH_ACTY_INT_MAGAZINES_TRAVEL",
+        "HH:Acty/Int:Magazines:Womens": "HH_ACTY_INT_MAGAZINES_WOMENS",
+        
+        # PC & Internet Fields
+        "HH:Acty/Int:PC & Internet:Own Computer": "HH_ACTY_INT_PC_INTERNET_OWN_COMPUTER",
+        "HH:Acty/Int:PC & Internet:Plan To Buy Computer": "HH_ACTY_INT_PC_INTERNET_PLAN_TO_BUY_COMPUTER",
+        "HH:Acty/Int:PC & Internet:Use Internet Service": "HH_ACTY_INT_PC_INTERNET_USE_INTERNET_SERVICE",
+        "HH:Acty/Int:PC & Internet:Usedsl/Hispd": "HH_ACTY_INT_PC_INTERNET_USEDSL_HISPD",
+        
+        # Reading Fields
+        "HH:Acty/Int:Reading:Computer": "HH_ACTY_INT_READING_COMPUTER",
+        
+        # Sweepstakes Fields
+        "HH:Acty/Int:Sweepstakes:Lotteries": "HH_ACTY_INT_SWEEPSTAKES_LOTTERIES",
+        "HH:Acty/Int:Sweepstakes:Sweepstakes": "HH_ACTY_INT_SWEEPSTAKES_SWEEPSTAKES",
+        
+        # Travel Fields
+        "HH:Acty/Int:Travel:Business Travel": "HH_ACTY_INT_TRAVEL_BUSINESS_TRAVEL",
+        "HH:Acty/Int:Travel:Cruise": "HH_ACTY_INT_TRAVEL_CRUISE",
+        "HH:Acty/Int:Travel:Domestic": "HH_ACTY_INT_TRAVEL_DOMESTIC",
+        "HH:Acty/Int:Travel:International": "HH_ACTY_INT_TRAVEL_INTERNATIONAL",
+        "HH:Acty/Int:Travel:Personal Travel": "HH_ACTY_INT_TRAVEL_PERSONAL_TRAVEL",
+        "HH:Acty/Int:Travel:Recreational Vehicle": "HH_ACTY_INT_TRAVEL_RECREATIONAL_VEHICLE",
+        "HH:Acty/Int:Travel:Time Share": "HH_ACTY_INT_TRAVEL_TIME_SHARE",
+        "HH:Acty/Int:Travel:Would Enjoy Rv Travel": "HH_ACTY_INT_TRAVEL_WOULD_ENJOY_RV_TRAVEL",
+        
+        # Lifestyle Fields
+        "HH:Lifestyl:Affiliation/Member:Music Club": "HH_LIFESTYL_AFFILIATION_MEMBER_MUSIC_CLUB",
+        "HH:Lifestyl:Buying Interest:Comp/Elec": "HH_LIFESTYL_BUYING_INTEREST_COMP_ELEC",
+        "HH:Lifestyl:Buying Interest:Sports Related": "HH_LIFESTYL_BUYING_INTEREST_SPORTS_RELATED",
+        "HH:Lifestyl:Entertainment:Buy Pre-Recorded Videos": "HH_LIFESTYL_ENTERTAINMENT_BUY_PRE_RECORDED_VIDEOS",
+        "HH:Lifestyl:Entertainment:Watch Cable Tv": "HH_LIFESTYL_ENTERTAINMENT_WATCH_CABLE_TV",
+        "HH:Lifestyl:Entertainment:Watch Videos": "HH_LIFESTYL_ENTERTAINMENT_WATCH_VIDEOS",
+        "HH:Lifestyl:Financial:Iras - Future Interest": "HH_LIFESTYL_FINANCIAL_IRAS_FUTURE_INTEREST",
+        "HH:Lifestyl:Grandkids:Proud Grandparent": "HH_LIFESTYL_GRANDKIDS_PROUD_GRANDPARENT",
+        "HH:Lifestyl:Pets:Own A Cat": "HH_LIFESTYL_PETS_OWN_A_CAT",
+        "HH:Lifestyl:Pets:Own A Dog": "HH_LIFESTYL_PETS_OWN_A_DOG",
+        "HH:Lifestyl:Pets:Own A Pet": "HH_LIFESTYL_PETS_OWN_A_PET",
+        
+        # DSE (Direct Spend Estimate) Fields
+        "DSE: Dine Out": "DSE_DINE_OUT",
+        "DSE: Alcohol and Wine": "DSE_ALCOHOL_WINE", 
+        "DSE: Apparel": "DSE_APPAREL",
+        "DSE: Entertainment": "DSE_ENTERTAINMENT",
+        "DSE: Personal": "DSE_PERSONAL",
+        "DSE: Reading": "DSE_READING",
+        "DSE: Education": "DSE_EDUCATION",
+        "DSE: Travel": "DSE_TRAVEL",
+        "DSE: Donation": "DSE_DONATION",
+        "DSE: Furnishings": "DSE_FURNISHINGS",
+        
+        # Date Fields
+        "Home: Purchase Date": "HOME_PURCHASE_DATE",
+        
+        # Person 1 TrueTouch Behavioral Fields
+        "Person 1: TrueTouch: Deal Seekers": "P1_TRUETOUCH_DEAL_SEEKERS",
+        "Person 1: TrueTouch: In The Moment Shoppers": "P1_TRUETOUCH_IN_THE_MOMENT_SHOPPERS",
+        "Person 1: TrueTouch: Mainstream Adopters": "P1_TRUETOUCH_MAINSTREAM_ADOPTERS",
+        "Person 1: TrueTouch: Novelty Seekers": "P1_TRUETOUCH_NOVELTY_SEEKERS",
+        "Person 1: TrueTouch: Quality Matters": "P1_TRUETOUCH_QUALITY_MATTERS",
+        "Person 1: TrueTouch: Recreational Shoppers": "P1_TRUETOUCH_RECREATIONAL_SHOPPERS",
 }
 
 def map_field_values(data: Any, field_name: str = "") -> Any:
@@ -1409,7 +2005,18 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
         "REAL_ESTATE_TAX", 
         "HOME_LAND_VALUE",
         "HOME_PURCHASE_MORTGAGE_AMOUNT",
-        "INVESTMENT_PROPERTY_PURCHASE_AMOUNT"
+        "INVESTMENT_PROPERTY_PURCHASE_AMOUNT",
+        # DSE (Direct Spend Estimate) fields
+        "DSE_DINE_OUT",
+        "DSE_ALCOHOL_WINE",
+        "DSE_APPAREL", 
+        "DSE_ENTERTAINMENT",
+        "DSE_PERSONAL",
+        "DSE_READING",
+        "DSE_EDUCATION",
+        "DSE_TRAVEL",
+        "DSE_DONATION",
+        "DSE_FURNISHINGS"
     ]:
         try:
             # Convert to integer, then format as full dollar amount with commas
@@ -1419,6 +2026,33 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
             else:
                 return f"${dollar_value:,}"
         except ValueError:
+            # If conversion fails, fall back to original value
+            return data
+    
+    # Special handling for date fields (YYYYMMDD format)
+    if mapping_key == "HOME_PURCHASE_DATE":
+        try:
+            # Convert YYYYMMDD to readable date format
+            if len(value_str) == 8 and value_str.isdigit():
+                year = value_str[:4]
+                month = value_str[4:6]
+                day = value_str[6:8]
+                
+                # Convert month number to name
+                month_names = {
+                    "01": "January", "02": "February", "03": "March", "04": "April",
+                    "05": "May", "06": "June", "07": "July", "08": "August",
+                    "09": "September", "10": "October", "11": "November", "12": "December"
+                }
+                
+                month_name = month_names.get(month, month)
+                # Remove leading zero from day
+                day_formatted = str(int(day))
+                
+                return f"{month_name} {day_formatted}, {year}"
+            else:
+                return data
+        except (ValueError, IndexError):
             # If conversion fails, fall back to original value
             return data
     
