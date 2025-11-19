@@ -35,7 +35,7 @@ function App() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4, px: 3, maxWidth: '100vw' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 4 }}>
         <img 
           src="/knowledgecore.jpeg" 
@@ -47,31 +47,45 @@ function App() {
         </Typography>
       </Box>
       
-      <Box sx={{ mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Search Information
-          </Typography>
-          <SearchForm onSubmit={handleSearch} />
-        </Paper>
-      </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {results && (
-        <Box>
-          <Paper elevation={3} sx={{ p: 3 }}>
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: results ? '400px 1fr' : '1fr',
+        gap: 3,
+        minHeight: 'calc(100vh - 200px)',
+        transition: 'grid-template-columns 0.3s ease-in-out'
+      }}>
+        {/* Search Panel */}
+        <Box sx={{ 
+          position: results ? 'sticky' : 'relative',
+          top: results ? 20 : 0,
+          height: results ? 'fit-content' : 'auto'
+        }}>
+          <Paper elevation={3} sx={{ p: 3, height: 'fit-content' }}>
             <Typography variant="h6" gutterBottom>
-              Search Results
+              Search Information
             </Typography>
-            <TabbedResults data={results} />
+            <SearchForm onSubmit={handleSearch} />
+            
+            {error && (
+              <Alert severity="error" sx={{ mt: 3 }}>
+                {error}
+              </Alert>
+            )}
           </Paper>
         </Box>
-      )}
+
+        {/* Results Panel */}
+        {results && (
+          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+            <Paper elevation={3} sx={{ p: 3, height: 'fit-content' }}>
+              <Typography variant="h6" gutterBottom>
+                Search Results
+              </Typography>
+              <TabbedResults data={results} />
+            </Paper>
+          </Box>
+        )}
+      </Box>
 
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

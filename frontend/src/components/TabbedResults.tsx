@@ -15,8 +15,22 @@ import {
   Badge,
   TextField,
   InputAdornment,
+  Collapse,
+  IconButton,
+  Grid,
+  Card,
+  CardContent,
+  Divider,
+  Button,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import {
+  Search as SearchIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  Psychology as PsychologyIcon,
+} from '@mui/icons-material';
 import { SearchResult } from '../types';
 
 interface TabbedResultsProps {
@@ -48,9 +62,32 @@ function TabPanel(props: TabPanelProps) {
 const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
   const [value, setValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [aiInsightsLoading, setAiInsightsLoading] = useState<{ [key: string]: boolean }>({});
+  const [aiInsightsResults, setAiInsightsResults] = useState<{ [key: string]: string }>({});
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
+  };
+
+  const toggleSection = (sectionKey: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
+
+  const handleAiInsights = async (category: string) => {
+    setAiInsightsLoading(prev => ({ ...prev, [category]: true }));
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      setAiInsightsResults(prev => ({ 
+        ...prev, 
+        [category]: "This feature is still in progress. AI insights will be available soon!" 
+      }));
+      setAiInsightsLoading(prev => ({ ...prev, [category]: false }));
+    }, 2000);
   };
 
   // Helper function to format field names for display
@@ -282,6 +319,208 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
     return acc;
   }, {} as Record<string, Array<[string, any]>>);
 
+  // Define sub-sections for each category
+  const getSubSections = (category: string, fields: Array<[string, any]>) => {
+    const subSections: { [key: string]: Array<[string, any]> } = {};
+    
+    switch (category) {
+      case 'Demographic':
+        subSections['Overview Section'] = [];
+        subSections['Giving History'] = [];
+        subSections['Biography'] = [];
+        
+        fields.forEach(([key, value]) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes('age') || lowerKey.includes('gender') || lowerKey.includes('marital') || 
+              lowerKey.includes('household') || lowerKey.includes('education')) {
+            subSections['Overview Section'].push([key, value]);
+          } else if (lowerKey.includes('donation') || lowerKey.includes('giving') || lowerKey.includes('charity')) {
+            subSections['Giving History'].push([key, value]);
+          } else {
+            subSections['Biography'].push([key, value]);
+          }
+        });
+        break;
+        
+      case 'Consumer Behavior':
+        subSections['Consumer Behavior'] = fields;
+        break;
+        
+      case 'Financial':
+        subSections['Wealth Analysis'] = [];
+        subSections['Assets'] = [];
+        subSections['Donor Advised Funds'] = [];
+        subSections['Foundation-Personal/Public'] = [];
+        
+        fields.forEach(([key, value]) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes('wealth') || lowerKey.includes('income') || lowerKey.includes('credit')) {
+            subSections['Wealth Analysis'].push([key, value]);
+          } else if (lowerKey.includes('asset') || lowerKey.includes('property') || lowerKey.includes('home')) {
+            subSections['Assets'].push([key, value]);
+          } else if (lowerKey.includes('fund') || lowerKey.includes('daf')) {
+            subSections['Donor Advised Funds'].push([key, value]);
+          } else if (lowerKey.includes('foundation')) {
+            subSections['Foundation-Personal/Public'].push([key, value]);
+          } else {
+            subSections['Wealth Analysis'].push([key, value]);
+          }
+        });
+        break;
+        
+      case 'Political Interests':
+        subSections['FEC Contributions'] = fields;
+        break;
+        
+      case 'Charitable Activities':
+        subSections['Charitable Activities'] = [];
+        subSections['AI Summary'] = [];
+        
+        fields.forEach(([key, value]) => {
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.includes('ai') || lowerKey.includes('summary') || lowerKey.includes('analysis')) {
+            subSections['AI Summary'].push([key, value]);
+          } else {
+            subSections['Charitable Activities'].push([key, value]);
+          }
+        });
+        break;
+        
+      default:
+        subSections['Overview'] = fields;
+    }
+    
+    // Remove empty sub-sections
+    Object.keys(subSections).forEach(key => {
+      if (subSections[key].length === 0) {
+        delete subSections[key];
+      }
+    });
+    
+    return subSections;
+  };
+
+  // Create expandable sub-section component
+  const createExpandableSubSection = (title: string, fields: Array<[string, any]>, sectionKey: string) => {
+    const isExpanded = expandedSections[sectionKey];
+    
+    if (fields.length === 0) return null;
+
+    return (
+      <Box key={sectionKey} sx={{ mb: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRadius: 1,
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: '#e9ecef',
+            }
+          }}
+          onClick={() => toggleSection(sectionKey)}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#495057' }}>
+            {title}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip 
+              label={fields.length} 
+              size="small" 
+              color="primary"
+              sx={{ fontWeight: 600 }}
+            />
+            <IconButton size="small" sx={{ color: '#6c757d' }}>
+              {isExpanded ? <RemoveIcon /> : <AddIcon />}
+            </IconButton>
+          </Box>
+        </Box>
+        
+        <Collapse in={isExpanded}>
+          <Box sx={{ mt: 1 }}>
+            {createResultsTable(fields)}
+          </Box>
+        </Collapse>
+      </Box>
+    );
+  };
+
+  // Create AI Insights component
+  const createAiInsightsSection = (category: string) => {
+    const isLoading = aiInsightsLoading[category];
+    const result = aiInsightsResults[category];
+
+    return (
+      <Box sx={{ mb: 3, p: 2, backgroundColor: '#f8f9fa', borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#495057' }}>
+            AI Insights
+          </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <PsychologyIcon />}
+            onClick={() => handleAiInsights(category)}
+            disabled={isLoading}
+            sx={{
+              backgroundColor: '#6366f1',
+              '&:hover': { backgroundColor: '#5b5bd6' }
+            }}
+          >
+            {isLoading ? 'Generating...' : 'Get AI Insights'}
+          </Button>
+        </Box>
+        
+        {result && (
+          <Alert 
+            severity="info" 
+            sx={{ 
+              backgroundColor: '#e3f2fd',
+              border: '1px solid #bbdefb'
+            }}
+          >
+            {result}
+          </Alert>
+        )}
+      </Box>
+    );
+  };
+
+  // Create the results with expandable sub-sections
+  const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
+    const hasAiInsights = ['Political Interests', 'Charitable Activities', 'Demographic'].includes(category);
+    
+    if (fields.length === 0) {
+      return (
+        <Box>
+          <Paper variant="outlined" sx={{ p: 6, textAlign: 'center', bgcolor: 'grey.50' }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No data available
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              This category doesn't contain any information for the current search result.
+            </Typography>
+          </Paper>
+          {hasAiInsights && createAiInsightsSection(category)}
+        </Box>
+      );
+    }
+
+    const subSections = getSubSections(category, fields);
+    
+    return (
+      <Box>
+        {Object.entries(subSections).map(([title, subFields]) => 
+          createExpandableSubSection(title, subFields, `${category}-${title}`)
+        )}
+        {hasAiInsights && createAiInsightsSection(category)}
+      </Box>
+    );
+  };
+
   // Create the results table component
   const createResultsTable = (fields: Array<[string, any]>) => {
     if (fields.length === 0) {
@@ -478,7 +717,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       
       {tabLabels.map((label, index) => (
         <TabPanel key={label} value={value} index={index}>
-          {createResultsTable(categorizedData[label] || [])}
+          {createExpandableResults(label, categorizedData[label] || [])}
         </TabPanel>
       ))}
     </Box>
