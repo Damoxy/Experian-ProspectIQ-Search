@@ -9,7 +9,7 @@ import {
   Backdrop,
 } from '@mui/material';
 import SearchForm from './components/SearchForm';
-import ResultsTable from './components/ResultsTable';
+import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
 import { searchExperian } from './services/api';
 import { SearchFormData, SearchResult } from './types';
@@ -68,7 +68,7 @@ function App() {
             <Typography variant="h6" gutterBottom>
               Search Results
             </Typography>
-            <ResultsTable data={results} />
+            <TabbedResults data={results} />
           </Paper>
         </Box>
       )}
