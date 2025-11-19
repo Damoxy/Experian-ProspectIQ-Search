@@ -190,7 +190,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
           fullWidth
           sx={{ py: 1.5 }}
         >
-          Search Experian
+          Search
         </Button>
         <Button
           type="button"
