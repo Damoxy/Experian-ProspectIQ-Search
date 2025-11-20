@@ -9,36 +9,56 @@ from sqlalchemy.sql import func
 from datetime import datetime
 import os
 from urllib.parse import quote_plus
+from fastapi import HTTPException
+from dotenv import load_dotenv
 
-# Build database URL from individual components - NO DEFAULTS
+# Load environment variables from .env file
+load_dotenv()
+
+
 DB_SERVER = os.getenv("DB_SERVER")
 DB_DATABASE = os.getenv("DB_DATABASE")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_DRIVER = os.getenv("DB_DRIVER")
 
-# Validate required environment variables
-required_vars = {
-    "DB_SERVER": DB_SERVER,
-    "DB_DATABASE": DB_DATABASE,
-    "DB_USERNAME": DB_USERNAME,
-    "DB_PASSWORD": DB_PASSWORD,
-    "DB_DRIVER": DB_DRIVER
-}
+# Initialize database components as None
+engine = None
+SessionLocal = None
 
-missing_vars = [var for var, value in required_vars.items() if not value]
-if missing_vars:
-    raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+# Try to initialize database connection (optional for API-only usage)
+try:
+    # Validate required environment variables
+    required_vars = {
+        "DB_SERVER": DB_SERVER,
+        "DB_DATABASE": DB_DATABASE,
+        "DB_USERNAME": DB_USERNAME,
+        "DB_PASSWORD": DB_PASSWORD,
+        "DB_DRIVER": DB_DRIVER
+    }
 
-# URL encode the password to handle special characters
-encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
+    missing_vars = [var for var, value in required_vars.items() if not value]
+    if missing_vars:
+        print(f"Warning: Database disabled - missing environment variables: {', '.join(missing_vars)}")
+    else:
+        # URL encode the password to handle special characters
+        encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
 
-# Construct the SQL Server database URL
-DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
+        # Construct the SQL Server database URL
+        DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
 
-engine = create_engine(DATABASE_URL)
+        engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+        print("Database connection initialized successfully")
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+except Exception as e:
+    print(f"Warning: Database connection failed: {str(e)}. API will work without database features.")
+    engine = None
+    SessionLocal = None
+
+# Initialize SessionLocal only if engine is available
+if engine is not None:
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
 
 class User(Base):
@@ -70,6 +90,8 @@ class PasswordResetToken(Base):
 
 def get_db():
     """Dependency to get database session"""
+    if SessionLocal is None:
+        raise HTTPException(status_code=503, detail="Database not available")
     db = SessionLocal()
     try:
         yield db
