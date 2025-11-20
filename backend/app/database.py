@@ -10,12 +10,25 @@ from datetime import datetime
 import os
 from urllib.parse import quote_plus
 
-# Build database URL from individual components
-DB_SERVER = os.getenv("DB_SERVER", "localhost")
-DB_DATABASE = os.getenv("DB_DATABASE", "experian_app")
-DB_USERNAME = os.getenv("DB_USERNAME", "sa")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_DRIVER = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
+# Build database URL from individual components - NO DEFAULTS
+DB_SERVER = os.getenv("DB_SERVER")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_USERNAME = os.getenv("DB_USERNAME")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DRIVER = os.getenv("DB_DRIVER")
+
+# Validate required environment variables
+required_vars = {
+    "DB_SERVER": DB_SERVER,
+    "DB_DATABASE": DB_DATABASE,
+    "DB_USERNAME": DB_USERNAME,
+    "DB_PASSWORD": DB_PASSWORD,
+    "DB_DRIVER": DB_DRIVER
+}
+
+missing_vars = [var for var, value in required_vars.items() if not value]
+if missing_vars:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 # URL encode the password to handle special characters
 encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
@@ -63,6 +76,3 @@ def get_db():
     finally:
         db.close()
 
-def create_tables():
-    """Create all tables"""
-    Base.metadata.create_all(bind=engine)
