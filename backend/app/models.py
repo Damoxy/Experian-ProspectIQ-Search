@@ -2,8 +2,42 @@
 Pydantic models for request/response validation
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Dict, Optional
+from datetime import datetime
+
+# Authentication Models
+class UserCreate(BaseModel):
+    """Model for user registration"""
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=6, description="User password")
+    first_name: str = Field(..., min_length=1, max_length=50, description="First name")
+    last_name: str = Field(..., min_length=1, max_length=50, description="Last name")
+
+class UserLogin(BaseModel):
+    """Model for user login"""
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., description="User password")
+
+class UserResponse(BaseModel):
+    """Model for user response (excluding password)"""
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    created_at: datetime
+    is_active: bool = True
+
+class Token(BaseModel):
+    """Model for JWT token response"""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+class ResetPasswordRequest(BaseModel):
+    """Model for password reset request"""
+    email: EmailStr = Field(..., description="User email address")
+    new_password: str = Field(..., min_length=6, description="New password")
 
 class SearchRequest(BaseModel):
     """Request model for Experian search"""

@@ -188,7 +188,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
           type="submit"
           variant="contained"
           fullWidth
-          sx={{ py: 1.5 }}
+          sx={{ 
+            py: 1.5,
+            backgroundColor: '#283E56',
+            '&:hover': {
+              backgroundColor: '#1e2f42'
+            }
+          }}
         >
           Search
         </Button>

@@ -13,7 +13,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
 from api.routes import router
+from api.auth_routes import router as auth_router
 from core.logging_config import setup_logging
+from database import create_tables
 
 # Initialize logging
 logger = setup_logging(DEBUG)
@@ -38,6 +40,10 @@ def create_app() -> FastAPI:
 
     # Include API routes
     app.include_router(router)
+    app.include_router(auth_router)
+    
+    # Initialize database tables
+    create_tables()
     
     # Log application startup
     logger.info("FastAPI application starting up")

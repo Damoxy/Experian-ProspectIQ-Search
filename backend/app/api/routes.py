@@ -2,7 +2,9 @@
 API router for Experian search endpoints with comprehensive logging
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 import json
 import time
 
@@ -10,19 +12,31 @@ from models import SearchRequest
 from services.experian_service import ExperianService
 from core.logging_config import setup_logging, log_api_request, log_api_response
 from config import DEBUG
+from auth import get_current_user_id
+from database import get_db
 
 # Initialize logging
 logger = setup_logging(DEBUG)
 
 router = APIRouter()
 experian_service = ExperianService()
+security = HTTPBearer()
 
 @router.post("/search")
-async def search_experian(search_request: SearchRequest):
+async def search_experian(
+    search_request: SearchRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
     """
     Search Experian database for contact and address information
+    (Protected endpoint - requires authentication)
     """
     start_time = time.time()
+    
+    # Validate authentication token
+    user_id = get_current_user_id(credentials.credentials)
+    logger.info(f"Authenticated search request from user ID: {user_id}")
     
     # Log incoming request
     log_api_request(logger, "/search", search_request.dict())
