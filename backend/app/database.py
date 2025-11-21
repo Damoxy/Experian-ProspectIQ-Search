@@ -137,4 +137,3 @@ def get_givingtrend_db():
         yield db
     finally:
         db.close()
-
