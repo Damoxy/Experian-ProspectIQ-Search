@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SearchFormData, SearchResult } from '../types';
+import { SearchFormData, SearchResult, LoginRequest, SignupRequest, AuthResponse, User } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -11,7 +11,90 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
-export const searchExperian = async (formData: SearchFormData): Promise<SearchResult> => {
+// Request interceptor to add auth token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Response interceptor completely disabled for debugging
+// apiClient.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     console.log('API Error:', error.response?.status, error.config?.url, error.response?.data);
+//     return Promise.reject(error);
+//   }
+// );
+
+// Authentication API
+export const authAPI = {
+  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
+    try {
+      const response = await apiClient.post('/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.detail || error.message || 'Login failed';
+        throw new Error(message);
+      }
+      throw new Error('An unexpected error occurred during login');
+    }
+  },
+
+  signup: async (userData: SignupRequest): Promise<AuthResponse> => {
+    try {
+      const response = await apiClient.post('/auth/signup', userData);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.detail || error.message || 'Signup failed';
+        throw new Error(message);
+      }
+      throw new Error('An unexpected error occurred during signup');
+    }
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    try {
+      const response = await apiClient.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.detail || error.message || 'Failed to get user info';
+        throw new Error(message);
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+
+  resetPassword: async (token: string, newPassword: string, email?: string): Promise<{ message: string }> => {
+    try {
+      if (email) {
+        // Email-based reset (new approach)
+        const response = await apiClient.post('/auth/forgot-password', {
+          email,
+          new_password: newPassword
+        });
+        return response.data;
+      } else {
+        // Token-based reset (legacy approach) - not implemented in backend yet
+        throw new Error('Token-based password reset is not currently supported');
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.detail || error.message || 'Failed to reset password';
+        throw new Error(message);
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+};
+
+// Search API (now protected)
+export const searchKnowledgeCore = async (formData: SearchFormData): Promise<SearchResult> => {
   try {
     const response = await apiClient.post('/search', formData);
     return response.data;

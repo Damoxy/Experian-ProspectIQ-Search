@@ -58,8 +58,8 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             label="First Name"
@@ -73,9 +73,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             label="Last Name"
@@ -89,6 +90,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
             required
           />
         </Grid>
@@ -106,6 +108,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
           />
         </Grid>
         <Grid item xs={12}>
@@ -122,9 +125,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             label="City"
@@ -138,9 +142,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             label="State"
@@ -154,10 +159,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
             placeholder="TX"
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             label="ZIP Code"
@@ -171,27 +177,35 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit }) => {
               ),
             }}
             variant="outlined"
+            size="small"
             placeholder="12345"
           />
         </Grid>
       </Grid>
       
-      <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{ 
+            py: 1.5,
+            backgroundColor: '#283E56',
+            '&:hover': {
+              backgroundColor: '#1e2f42'
+            }
+          }}
+        >
+          Search
+        </Button>
         <Button
           type="button"
           variant="outlined"
           onClick={resetForm}
-          size="large"
+          fullWidth
+          size="small"
         >
           Clear Form
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          sx={{ minWidth: 120 }}
-        >
-          Search
         </Button>
       </Box>
     </Box>
