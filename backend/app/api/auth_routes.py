@@ -152,4 +152,3 @@ async def forgot_password(request: ResetPasswordRequest, db: Session = Depends(g
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while resetting the password"
         )
-

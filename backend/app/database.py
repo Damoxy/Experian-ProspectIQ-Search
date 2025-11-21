@@ -17,7 +17,7 @@ load_dotenv()
 
 
 DB_SERVER = os.getenv("DB_SERVER")
-DB_DATABASE = os.getenv("DB_DATABASE")
+KC_EXP_DB_DATABASE = os.getenv("KC_EXP_DB_DATABASE")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_DRIVER = os.getenv("DB_DRIVER")
@@ -31,7 +31,7 @@ try:
     # Validate required environment variables
     required_vars = {
         "DB_SERVER": DB_SERVER,
-        "DB_DATABASE": DB_DATABASE,
+        "KC_EXP_DB_DATABASE": KC_EXP_DB_DATABASE,
         "DB_USERNAME": DB_USERNAME,
         "DB_PASSWORD": DB_PASSWORD,
         "DB_DRIVER": DB_DRIVER
@@ -45,7 +45,7 @@ try:
         encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
 
         # Construct the SQL Server database URL
-        DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
+        DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_EXP_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
 
         engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
         print("Database connection initialized successfully")
@@ -97,4 +97,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
