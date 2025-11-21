@@ -12,7 +12,6 @@ import {
   TableRow,
   Paper,
   Chip,
-  Badge,
   TextField,
   InputAdornment,
   Collapse,
@@ -240,7 +239,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
         lowerKey.includes('wildlife') ||
         lowerKey.includes('children') ||
         lowerKey.includes('veterans') ||
-        lowerKey.includes('health') && lowerKey.includes('cause')
+        (lowerKey.includes('health') && lowerKey.includes('cause'))
       ) {
         categories['Charitable Activities'].push([key, value]);
       }
@@ -257,8 +256,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
         lowerKey.includes('asset') ||
         lowerKey.includes('wealth') ||
         lowerKey.includes('affluence') ||
-        lowerKey.includes('estimated') && (lowerKey.includes('home') || lowerKey.includes('value')) ||
-        lowerKey.includes('property') && lowerKey.includes('value') ||
+        (lowerKey.includes('estimated') && (lowerKey.includes('home') || lowerKey.includes('value'))) ||
+        (lowerKey.includes('property') && lowerKey.includes('value')) ||
         lowerKey.includes('card') ||
         lowerKey.includes('insurance') ||
         lowerKey.includes('retirement') ||
