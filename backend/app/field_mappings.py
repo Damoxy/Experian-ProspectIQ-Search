@@ -589,12 +589,6 @@ def sort_fields_by_priority(data: Dict[str, Any]) -> Dict[str, Any]:
     
     sorted_items = sorted(data.items(), key=sort_key)
     
-    # Debug: Print the sorting order
-    print("DEBUG - Field sorting order:")
-    for i, (key, value) in enumerate(sorted_items, 1):
-        priority = get_priority(key)
-        print(f"  {i}. '{key}' (priority: {priority})")
-    
     # Recursively sort nested dictionaries using OrderedDict for guaranteed order
     sorted_dict = OrderedDict()
     for key, value in sorted_items:
