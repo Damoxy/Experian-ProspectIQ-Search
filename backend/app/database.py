@@ -9,56 +9,44 @@ from sqlalchemy.sql import func
 from datetime import datetime
 import os
 from urllib.parse import quote_plus
-from fastapi import HTTPException
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-
+# Build database URL from individual components 
 DB_SERVER = os.getenv("DB_SERVER")
-KC_EXP_DB_DATABASE = os.getenv("KC_EXP_DB_DATABASE")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_DRIVER = os.getenv("DB_DRIVER")
 
-# Initialize database components as None
-engine = None
-SessionLocal = None
+# Database names -
+KC_EXP_DB_DATABASE = os.getenv("KC_EXP_DB_DATABASE")
+KC_GT_DB_DATABASE = os.getenv("KC_GT_DB_DATABASE")
 
-# Try to initialize database connection (optional for API-only usage)
-try:
-    # Validate required environment variables
-    required_vars = {
-        "DB_SERVER": DB_SERVER,
-        "KC_EXP_DB_DATABASE": KC_EXP_DB_DATABASE,
-        "DB_USERNAME": DB_USERNAME,
-        "DB_PASSWORD": DB_PASSWORD,
-        "DB_DRIVER": DB_DRIVER
-    }
+# Validate required environment variables
+required_vars = {
+    "DB_SERVER": DB_SERVER,
+    "DB_USERNAME": DB_USERNAME,
+    "DB_PASSWORD": DB_PASSWORD,
+    "DB_DRIVER": DB_DRIVER,
+    "KC_EXP_DB_DATABASE": KC_EXP_DB_DATABASE,
+    "KC_GT_DB_DATABASE": KC_GT_DB_DATABASE
+}
 
-    missing_vars = [var for var, value in required_vars.items() if not value]
-    if missing_vars:
-        print(f"Warning: Database disabled - missing environment variables: {', '.join(missing_vars)}")
-    else:
-        # URL encode the password to handle special characters
-        encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
+missing_vars = [var for var, value in required_vars.items() if not value]
+if missing_vars:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
-        # Construct the SQL Server database URL
-        DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_EXP_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
+# URL encode the password to handle special characters
+encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
 
-        engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
-        print("Database connection initialized successfully")
+# Construct the SQL Server database URLs (using same server/credentials for both)
+EXPERIAN_DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_EXP_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
+GIVINGTREND_DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_GT_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
 
-except Exception as e:
-    print(f"Warning: Database connection failed: {str(e)}. API will work without database features.")
-    engine = None
-    SessionLocal = None
+# Create engines for both databases
+experian_engine = create_engine(EXPERIAN_DATABASE_URL)
+givingtrend_engine = create_engine(GIVINGTREND_DATABASE_URL)
 
-# Initialize SessionLocal only if engine is available
-if engine is not None:
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+ExperianSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=experian_engine)
+GivingTrendSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=givingtrend_engine)
 Base = declarative_base()
 
 class User(Base):
@@ -88,11 +76,63 @@ class PasswordResetToken(Base):
     # Relationship
     user = relationship("User")
 
-def get_db():
-    """Dependency to get database session"""
-    if SessionLocal is None:
-        raise HTTPException(status_code=503, detail="Database not available")
-    db = SessionLocal()
+# Create separate Base for KnowledgeCore database
+KCBase = declarative_base()
+
+class Donor(KCBase):
+    """Donor model for KnowledgeCore database"""
+    __tablename__ = "Donor"
+    __table_args__ = {'schema': 'dbo'}
+    
+    # Primary key
+    DonorId = Column(Integer, primary_key=True)
+    
+    # Parish and identification fields
+    ParishIdentifier = Column(String(100))
+    ConstituentId = Column(String(100))
+    FamilyId = Column(Integer)
+    
+    # Resident/Primary contact fields
+    RELastName = Column(String(100), index=True)
+    REMiddleName = Column(String(50))
+    REFirstName = Column(String(100), index=True)
+    RESpouseId = Column(String(100))
+    ReAddress = Column(String(200), index=True)
+    RECity = Column(String(100), index=True)
+    REZipCode = Column(String(20), index=True)
+    REState = Column(String(50), index=True)
+    REPhone = Column(String(20))
+    REEmail = Column(String(150))
+    
+    # Parish contact fields
+    ParishAddress = Column(String(200))
+    ParishLastName = Column(String(100))
+    ParishMiddleName = Column(String(50))
+    ParishFirstName = Column(String(100))
+    ParishCity = Column(String(100))
+    ParishState = Column(String(50))
+    ParishZipCode = Column(String(20))
+    ParishPhone = Column(String(20))
+    ParishEmail = Column(String(150))
+    
+    # Additional fields
+    MatchType = Column(String(50))
+    REOrgName = Column(String(100))
+    RESaluationAddress = Column(String(100))
+    RESaluationAddress2 = Column(String(100))
+    FundDescription = Column(String(100))
+
+def get_experian_db():
+    """Dependency to get Experian database session"""
+    db = ExperianSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_givingtrend_db():
+    """Dependency to get GivingTrend database session"""
+    db = GivingTrendSessionLocal()
     try:
         yield db
     finally:

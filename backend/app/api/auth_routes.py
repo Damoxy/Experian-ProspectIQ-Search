@@ -7,7 +7,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
-from database import get_db
+from database import get_experian_db
 from models import UserCreate, UserLogin, Token, UserResponse, ResetPasswordRequest
 from services.auth_service import AuthService
 from auth import create_access_token, get_current_user_id, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -22,7 +22,7 @@ auth_service = AuthService()
 security = HTTPBearer()
 
 @router.post("/signup", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def signup(user: UserCreate, db: Session = Depends(get_db)):
+async def signup(user: UserCreate, db: Session = Depends(get_experian_db)):
     """Register a new user"""
     try:
         logger.info(f"New user signup attempt: {user.email}")
@@ -52,7 +52,7 @@ async def signup(user: UserCreate, db: Session = Depends(get_db)):
         )
 
 @router.post("/login", response_model=Token)
-async def login(user: UserLogin, db: Session = Depends(get_db)):
+async def login(user: UserLogin, db: Session = Depends(get_experian_db)):
     """Authenticate user and return access token"""
     try:
         logger.info(f"Login attempt for: {user.email}")
@@ -101,7 +101,7 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_experian_db)
 ):
     """Get current user information"""
     try:
@@ -126,7 +126,7 @@ async def get_current_user(
         )
 
 @router.post("/forgot-password")
-async def forgot_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+async def forgot_password(request: ResetPasswordRequest, db: Session = Depends(get_experian_db)):
     """Reset password directly with email and new password"""
     try:
         logger.info(f"Password reset requested for: {request.email}")
