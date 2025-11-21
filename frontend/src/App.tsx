@@ -10,6 +10,7 @@ import {
   CssBaseline,
   ThemeProvider,
   createTheme,
+  Chip,
 } from '@mui/material';
 import { Person, Home } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -311,6 +312,36 @@ const AppContent: React.FC = () => {
                     {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
                   </Typography>
                 </Box>
+                
+                {/* Source Badge - positioned absolutely at extreme right */}
+                <Chip
+                  label={
+                    results?.source === 'database' || results?.message?.includes('KnowledgeCore') 
+                      ? 'KC/GT Database' 
+                      : 'Experian API'
+                  }
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    backgroundColor: results?.source === 'database' || results?.message?.includes('KnowledgeCore')
+                      ? '#4caf50' // Green for database
+                      : '#ff9800', // Orange for API
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    height: 24,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    animation: 'fadeInRight 0.8s ease-out 0.6s both',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                />
               </Box>
             )}
             
