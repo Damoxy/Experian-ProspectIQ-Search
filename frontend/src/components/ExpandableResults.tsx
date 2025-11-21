@@ -62,11 +62,20 @@ const ExpandableResults: React.FC<ExpandableResultsProps> = ({ data }) => {
         {
           title: 'Overview Section',
           fields: {
-            'Age': data.demographics?.age || 'N/A',
-            'Gender': data.demographics?.gender || 'N/A',
-            'Marital Status': data.demographics?.maritalStatus || 'Single',
-            'Household Size': data.demographics?.householdSize || 2,
-            'Education Level': data.demographics?.education || 'College Graduate',
+            'Giving Tiles: Lifetime Giving': 'Coming Soon',
+            'Giving Tiles: Largest Gift': 'Coming Soon',
+            'Giving Tiles: First Gift': 'Coming Soon',
+            'Giving Tiles: Latest Gift': 'Coming Soon',
+            'Scores: Overall Score': 'Coming Soon',
+            'Scores: Propensity': 'Coming Soon',
+            'Scores: Capacity': 'Coming Soon',
+            'Scores: Planned Giving': 'Coming Soon',
+            'Giving Indicators: Capacity Range $': 'Coming Soon',
+            'Giving Indicators: Total Political Giving $': 'Coming Soon',
+            'Giving Indicators: Charitable Giving $': 'Coming Soon',
+            'Wealth Indicators: Estimated Household Income': 'Coming Soon',
+            'Wealth Indicators: Home Market Value': 'Coming Soon',
+            'Wealth Indicators: Net Worth': 'Coming Soon',
           }
         },
         {

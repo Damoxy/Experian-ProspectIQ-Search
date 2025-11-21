@@ -121,6 +121,9 @@ class KnowledgeCoreService:
                     "city": donor.RECity or "",
                     "state": donor.REState or "",
                     "zip_code": donor.REZipCode or "",
+                    "constituent_id": donor.ConstituentId or "",
+                    "phone": donor.REPhone or "",
+                    "email": donor.REEmail or "",
                     "address_match_score": round(address_score, 2),
                     "source": "KnowledgeCore_Database"
                 }
@@ -181,6 +184,11 @@ class KnowledgeCoreService:
                     "state": donor["state"],
                     "zip_code": donor["zip_code"],
                     "full_address": f"{donor['address']}, {donor['city']}, {donor['state']} {donor['zip_code']}"
+                },
+                "contact_info": {
+                    "constituent_id": donor["constituent_id"],
+                    "phone": donor["phone"],
+                    "email": donor["email"]
                 },
                 "match_quality": {
                     "address_similarity": donor["address_match_score"],

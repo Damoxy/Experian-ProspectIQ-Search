@@ -12,7 +12,7 @@ import {
   createTheme,
   Chip,
 } from '@mui/material';
-import { Person, Home } from '@mui/icons-material';
+import { Person, Home, Phone, Email, Badge } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
 import Header from './components/Header';
@@ -23,16 +23,55 @@ import AnimatedBubbles from './components/AnimatedBubbles';
 import { searchKnowledgeCore } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
-// Create light theme (original white background)
+// Create enhanced modern theme with gradient background
 const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1976d2',
+      main: '#2E3B55',
+      light: '#4A5D7A',
+      dark: '#1C2433',
+    },
+    secondary: {
+      main: '#00C853',
+      light: '#5EFC82',
+      dark: '#009624',
     },
     background: {
-      default: '#ffffff',
-      paper: '#ffffff',
+      default: '#E5E7EB',
+      paper: 'rgba(255, 255, 255, 0.95)',
+    },
+    text: {
+      primary: '#2E3B55',
+      secondary: '#5A6C7D',
+    },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          background: '#E5E7EB',
+          minHeight: '100vh',
+          backgroundAttachment: 'fixed',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          background: 'transparent',
+        },
+      },
     },
   },
 });
@@ -88,7 +127,7 @@ const AppContent: React.FC = () => {
       <Container maxWidth={false} sx={{ pt: 12, pb: 4, px: 3, maxWidth: '100vw', position: 'relative' }}>
       
       {!results ? (
-        // Centered search layout with bubbles
+        // Centered search layout with enhanced modern design
         <Box sx={{ 
           position: 'relative',
           minHeight: 'calc(100vh - 200px)',
@@ -97,7 +136,7 @@ const AppContent: React.FC = () => {
           alignItems: 'flex-start',
           pt: 4
         }}>
-          {/* Background bubbles */}
+          {/* Modern gradient background with glass morphism */}
           <Box sx={{ 
             position: 'absolute', 
             top: 0,
@@ -105,8 +144,11 @@ const AppContent: React.FC = () => {
             width: '100%',
             height: '100%',
             overflow: 'hidden',
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #bbdefb 100%)',
+            borderRadius: 3,
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
             zIndex: 0
           }}>
             <AnimatedBubbles />
@@ -172,7 +214,8 @@ const AppContent: React.FC = () => {
                   left: 440, // Start after search panel (400px + 40px gap)
                   right: 24, // Match container padding
                   height: 140, // Cover area where sticky header will be
-                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 30%, rgba(255,255,255,0.7) 60%, transparent 100%)',
+                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 30%, transparent 60%)',
+                  backdropFilter: 'blur(10px)',
                   zIndex: 1150,
                   pointerEvents: 'none',
                 }}
@@ -222,95 +265,72 @@ const AppContent: React.FC = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 2, alignItems: 'start' }}>
-                  {/* Name Row */}
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      minWidth: 100,
-                      animation: 'fadeInLeft 0.8s ease-out 0.2s both',
-                      '@keyframes fadeInLeft': {
-                        '0%': {
-                          transform: 'translateX(-20px)',
-                          opacity: 0,
-                        },
-                        '100%': {
-                          transform: 'translateX(0)',
-                          opacity: 1,
-                        },
-                      },
-                    }}
-                  >
-                    <Person sx={{ 
-                      mr: 1, 
-                      fontSize: 18, 
-                      opacity: 0.8,
-                      animation: 'pulse 2s infinite',
-                      '@keyframes pulse': {
-                        '0%, 100%': { opacity: 0.8 },
-                        '50%': { opacity: 1 },
-                      },
-                    }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                      Name:
-                    </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, alignItems: 'start' }}>
+                  {/* Left Column */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {/* Name */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Person sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '70px' }}>
+                        Name:
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '0.3px' }}>
+                        {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Address */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <Home sx={{ fontSize: 18, opacity: 0.8, mt: 0.5 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '70px', mt: 0.5 }}>
+                        Address:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500, lineHeight: 1.4, opacity: 0.95 }}>
+                        {searchCriteria.STREET1}
+                        {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
+                        <br />
+                        {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      fontWeight: 600, 
-                      letterSpacing: '0.3px',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                      animation: 'fadeInRight 0.8s ease-out 0.3s both',
-                      '@keyframes fadeInRight': {
-                        '0%': {
-                          transform: 'translateX(20px)',
-                          opacity: 0,
-                        },
-                        '100%': {
-                          transform: 'translateX(0)',
-                          opacity: 1,
-                        },
-                      },
-                    }}
-                  >
-                    {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
-                  </Typography>
                   
-                  {/* Address Row */}
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      minWidth: 100,
-                      animation: 'fadeInLeft 0.8s ease-out 0.4s both',
-                    }}
-                  >
-                    <Home sx={{ 
-                      mr: 1, 
-                      fontSize: 18, 
-                      opacity: 0.8,
-                      animation: 'pulse 2s infinite 0.5s',
-                    }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                      Address:
-                    </Typography>
-                  </Box>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      fontWeight: 500, 
-                      lineHeight: 1.4,
-                      opacity: 0.95,
-                      animation: 'fadeInRight 0.8s ease-out 0.5s both',
-                    }}
-                  >
-                    {searchCriteria.STREET1}
-                    {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
-                    <br />
-                    {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
-                  </Typography>
+                  {/* Right Column - Contact Info (Database only) */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {/* Phone */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Phone sx={{ fontSize: 18, opacity: 0.8 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
+                          Phone:
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                          {results.results.consumer_behavior.records[0].contact_info.phone || 'Not Available'}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Email */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Email sx={{ fontSize: 18, opacity: 0.8 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
+                          Email:
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                          {results.results.consumer_behavior.records[0].contact_info.email || 'Not Available'}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Constituent ID */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Badge sx={{ fontSize: 18, opacity: 0.8 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
+                          Constituent ID:
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                          {results.results.consumer_behavior.records[0].contact_info.constituent_id || 'Not Available'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
                 
                 {/* Source Badge - positioned absolutely at extreme right */}
@@ -350,8 +370,8 @@ const AppContent: React.FC = () => {
               height: 'fit-content', 
               position: 'relative', 
               zIndex: 10,
-              backgroundColor: '#ffffff',
-              marginTop: 0
+              marginTop: 0,
+              borderRadius: 3
             }}>
               <Typography variant="h6" gutterBottom>
                 Search Results
