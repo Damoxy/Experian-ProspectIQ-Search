@@ -195,6 +195,53 @@ const AppContent: React.FC = () => {
               </Typography>
               <SearchForm onSubmit={handleSearch} />
               
+              {/* Recent Searches Section */}
+              <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1rem' }}>
+                  Recent Searches
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {[
+                    { name: 'John Smith', address: '123 Main St, Chicago, IL', date: '2h ago' },
+                    { name: 'Sarah Johnson', address: '456 Oak Ave, New York, NY', date: '1d ago' },
+                    { name: 'Michael Brown', address: '789 Pine Rd, Los Angeles, CA', date: '2d ago' },
+                    { name: 'Emily Davis', address: '321 Elm St, Miami, FL', date: '3d ago' },
+                    { name: 'David Wilson', address: '654 Maple Dr, Seattle, WA', date: '1w ago' }
+                  ].map((search, index) => (
+                    <Box 
+                      key={index}
+                      sx={{ 
+                        p: 1.5, 
+                        borderRadius: 1.5, 
+                        backgroundColor: 'rgba(52, 152, 219, 0.04)',
+                        border: '1px solid rgba(52, 152, 219, 0.08)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(52, 152, 219, 0.08)',
+                          borderColor: 'rgba(52, 152, 219, 0.15)',
+                          transform: 'translateY(-1px)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#2C3E50', mb: 0.3, fontSize: '0.85rem' }}>
+                            {search.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#566573', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {search.address}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#7B8794', fontSize: '0.7rem', ml: 1, flexShrink: 0 }}>
+                          {search.date}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+              
               {error && (
                 <Alert severity="error" sx={{ mt: 3 }}>
                   {error}
@@ -367,7 +414,7 @@ const AppContent: React.FC = () => {
             
             <Paper elevation={3} sx={{ 
               p: 3, 
-              height: 'fit-content', 
+              minHeight: 'calc(100vh - 140px)', 
               position: 'relative', 
               zIndex: 10,
               marginTop: 0,
