@@ -136,7 +136,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
   const categorizeFields = (obj: any): Record<string, Array<[string, any]>> => {
     const categories = {
       'Consumer Behavior': [] as Array<[string, any]>,
-      'Demographic': [] as Array<[string, any]>,
+      'Profile': [] as Array<[string, any]>,
       'Financial': [] as Array<[string, any]>,
       'Political Interests': [] as Array<[string, any]>,
       'Charitable Activities': [] as Array<[string, any]>,
@@ -295,7 +295,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
         lowerKey.includes('business owner') ||
         lowerKey.includes('new mover')
       ) {
-        categories['Demographic'].push([key, value]);
+        categories['Profile'].push([key, value]);
       }
       // Default to Consumer Behavior for unmatched fields
       else {
@@ -319,19 +319,38 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
     const subSections: { [key: string]: Array<[string, any]> } = {};
     
     switch (category) {
-      case 'Demographic':
-        subSections['Overview Section'] = [];
-        subSections['Giving History'] = [];
+      case 'Profile':
+        // Add predefined Overview Section tiles
+        subSections['Overview Section'] = [
+          ['Lifetime Giving', 'Coming Soon'],
+          ['Largest Gift', 'Coming Soon'],
+          ['First Gift', 'Coming Soon'],
+          ['Latest Gift', 'Coming Soon'],
+          ['Overall Score', 'Coming Soon'],
+          ['Propensity', 'Coming Soon'],
+          ['Capacity', 'Coming Soon'],
+          ['Planned Giving', 'Coming Soon'],
+          ['Capacity Range $', 'Coming Soon'],
+          ['Total Political Giving $', 'Coming Soon'],
+          ['Charitable Giving $', 'Coming Soon'],
+          ['Estimated Household Income', 'Coming Soon'],
+          ['Home Market Value', 'Coming Soon'],
+          ['Net Worth', 'Coming Soon']
+        ];
+        subSections['Giving History'] = [
+          ['Gift Date', 'Coming Soon'],
+          ['Gift Amount', 'Coming Soon'],
+          ['Gift Type', 'Coming Soon'],
+          ['Campaign ID', 'Coming Soon'],
+          ['Fund ID', 'Coming Soon'],
+          ['Appeal', 'Coming Soon'],
+          ['Location ID', 'Coming Soon']
+        ];
         subSections['Biography'] = [];
         
         fields.forEach(([key, value]) => {
           const lowerKey = key.toLowerCase();
-          if (lowerKey.includes('age') || lowerKey.includes('gender') || lowerKey.includes('marital') || 
-              lowerKey.includes('household') || lowerKey.includes('education')) {
-            subSections['Overview Section'].push([key, value]);
-          } else if (lowerKey.includes('donation') || lowerKey.includes('giving') || lowerKey.includes('charity')) {
-            subSections['Giving History'].push([key, value]);
-          } else {
+          if (!lowerKey.includes('donation') && !lowerKey.includes('giving') && !lowerKey.includes('charity')) {
             subSections['Biography'].push([key, value]);
           }
         });
@@ -381,6 +400,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
         });
         break;
         
+
       default:
         subSections['Overview'] = fields;
     }
@@ -486,7 +506,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
 
   // Create the results with expandable sub-sections
   const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
-    const hasAiInsights = ['Political Interests', 'Charitable Activities', 'Demographic'].includes(category);
+    const hasAiInsights = ['Political Interests', 'Charitable Activities', 'Profile'].includes(category);
     
     if (fields.length === 0) {
       return (
@@ -619,8 +639,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
   };
 
   const tabLabels = [
+    'Profile',
     'Consumer Behavior',
-    'Demographic',
     'Financial',
     'Political Interests', 
     'Charitable Activities'

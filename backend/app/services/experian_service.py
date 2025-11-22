@@ -118,7 +118,6 @@ class ExperianService:
         self.logger.debug("Parsing Experian API response")
         
         # Clean the response data
-        self.logger.debug("Cleaning response data")
         raw_count = len(raw_data) if isinstance(raw_data, (list, dict)) else 1
         cleaned_data = clean_response_data(raw_data)
         cleaned_count = len(cleaned_data) if isinstance(cleaned_data, (list, dict)) else 1

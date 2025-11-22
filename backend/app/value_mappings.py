@@ -2265,8 +2265,6 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
     # Find the mapping key for this field
     mapping_key = FIELD_TO_MAPPING_KEY.get(field_name)
     if not mapping_key:
-        # Debug: Print unmapped field names
-        print(f"DEBUG: No mapping key found for field: '{field_name}'")
         return data
     
     # Special handling for dollar value fields
@@ -2384,15 +2382,8 @@ def map_field_values(data: Any, field_name: str = "") -> Any:
     # Get the mapping dictionary for coded values
     mapping_dict = VALUE_MAPPINGS.get(mapping_key, {})
     
-    # Debug: Print mapping attempts
-    print(f"DEBUG: Field '{field_name}' -> Key '{mapping_key}' -> Value '{value_str}'")
-    
     # Return mapped value or original if no mapping found
     mapped_value = mapping_dict.get(value_str, data)
-    if mapped_value != data:
-        print(f"DEBUG: Mapped '{value_str}' to '{mapped_value}'")
-    else:
-        print(f"DEBUG: No mapping found for value '{value_str}' in '{mapping_key}'")
     
     return mapped_value
 

@@ -18,8 +18,6 @@ def clean_response_data(data: Any) -> Any:
     Returns:
         Cleaned data structure with empty values removed
     """
-    logger.debug(f"Cleaning data of type: {type(data)}")
-    
     if isinstance(data, dict):
         cleaned = {}
         for key, value in data.items():
