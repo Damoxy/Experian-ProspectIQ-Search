@@ -12,6 +12,10 @@ load_dotenv()
 EXPERIAN_API_URL = os.getenv("EXPERIAN_API_URL")
 EXPERIAN_AUTH_TOKEN = os.getenv("EXPERIAN_AUTH_TOKEN")
 
+# Experian Aperture API Configuration (for phone validation)
+EXPERIAN_APERTURE_API_URL = os.getenv("EXPERIAN_APERTURE_API_URL", "https://api.experianaperture.io/identity/append/v1")
+EXPERIAN_APERTURE_AUTH_TOKEN = os.getenv("EXPERIAN_APERTURE_AUTH_TOKEN")
+
 # Server Configuration
 HOST = os.getenv("HOST", "localhost")
 PORT = int(os.getenv("PORT", 8000))

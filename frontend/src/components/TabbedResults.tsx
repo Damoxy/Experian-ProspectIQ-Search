@@ -26,10 +26,12 @@ import {
   Remove as RemoveIcon,
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
-import { SearchResult } from '../types';
+import { SearchResult, SearchFormData } from '../types';
+import { validatePhoneNumbers } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
+  searchCriteria?: SearchFormData;
 }
 
 interface TabPanelProps {
@@ -54,12 +56,14 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
+const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) => {
   const [value, setValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [aiInsightsLoading, setAiInsightsLoading] = useState<{ [key: string]: boolean }>({});
   const [aiInsightsResults, setAiInsightsResults] = useState<{ [key: string]: string }>({});
+  const [phoneValidationLoading, setPhoneValidationLoading] = useState(false);
+  const [phoneValidationData, setPhoneValidationData] = useState<any>(null);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -83,6 +87,50 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       }));
       setAiInsightsLoading(prev => ({ ...prev, [category]: false }));
     }, 2000);
+  };
+
+  const handlePhoneValidation = async () => {
+    if (!searchCriteria) {
+      console.warn('No search criteria available for phone validation');
+      return;
+    }
+
+    setPhoneValidationLoading(true);
+    try {
+      console.log('Manual phone validation requested...');
+      const phoneData = await validatePhoneNumbers(searchCriteria);
+      
+      if (phoneData && phoneData.phone_validation) {
+        setPhoneValidationData(phoneData.phone_validation);
+        console.log('Phone validation completed');
+        
+        // Check if there was an error in the response
+        if (phoneData.phone_validation.validation_metadata?.error) {
+          console.warn('Phone validation API returned error:', phoneData.phone_validation.validation_metadata.error);
+        } else {
+          console.log('Phone validation successful');
+        }
+      }
+    } catch (error) {
+      console.error('Phone validation request failed:', error);
+      
+      // Create an error response for display
+      setPhoneValidationData({
+        phones_found: [],
+        mobile_phones: [],
+        landline_phones: [],
+        dnc_compliant_phones: [],
+        non_dnc_phones: [],
+        total_phones: 0,
+        validation_metadata: {
+          error: error instanceof Error ? error.message : 'Network error occurred',
+          api_source: 'experian_aperture',
+          validation_status: 'network_error'
+        }
+      });
+    } finally {
+      setPhoneValidationLoading(false);
+    }
   };
 
   // Helper function to format field names for display
@@ -140,6 +188,11 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       'Financial': [] as Array<[string, any]>,
       'Political Interests': [] as Array<[string, any]>,
       'Charitable Activities': [] as Array<[string, any]>,
+      'Contact Validation': [] as Array<[string, any]>,
+      'Philanthropy': [] as Array<[string, any]>,
+      'Affiliations': [] as Array<[string, any]>,
+      'Social Media': [] as Array<[string, any]>,
+      'News': [] as Array<[string, any]>,
     };
 
     const flattenObject = (obj: any, prefix = ''): Array<[string, any]> => {
@@ -399,6 +452,159 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
           }
         });
         break;
+
+      case 'Contact Validation':
+        // Use either the existing phone validation data or manually fetched data
+        const phoneValidation = data.phone_validation || phoneValidationData;
+        
+        if (phoneValidation) {
+          // Phone Numbers Summary
+          subSections['Phone Numbers Summary'] = [
+            ['Total Phones Found', phoneValidation.total_phones || 0],
+            ['Mobile Phones', phoneValidation.validation_metadata?.mobile_count || 0],
+            ['Landline Phones', phoneValidation.validation_metadata?.landline_count || 0],
+            ['DNC Compliant', phoneValidation.validation_metadata?.dnc_compliant_count || 0],
+            ['Non-DNC Numbers', phoneValidation.validation_metadata?.non_dnc_count || 0]
+          ];
+
+          // Mobile Phones
+          if (phoneValidation.mobile_phones && phoneValidation.mobile_phones.length > 0) {
+            subSections['Mobile Phones'] = phoneValidation.mobile_phones.map((phone: any, index: number) => [
+              `Mobile ${index + 1}`,
+              `${phone.number} (${phone.dnc_status ? 'DNC' : 'OK'}) - Rank ${phone.rank}`
+            ]);
+          }
+
+          // Landline Phones
+          if (phoneValidation.landline_phones && phoneValidation.landline_phones.length > 0) {
+            subSections['Landline Phones'] = phoneValidation.landline_phones.map((phone: any, index: number) => [
+              `Landline ${index + 1}`,
+              `${phone.number} (${phone.dnc_status ? 'DNC' : 'OK'}) - Rank ${phone.rank}`
+            ]);
+          }
+
+          // Non-DNC Compliant Numbers (Best for calling)
+          if (phoneValidation.non_dnc_phones && phoneValidation.non_dnc_phones.length > 0) {
+            subSections['Recommended Numbers (Non-DNC)'] = phoneValidation.non_dnc_phones.map((phone: any, index: number) => [
+              `${phone.type === 'mobile' ? 'Mobile' : 'Landline'} ${index + 1}`,
+              `${phone.number} - Rank ${phone.rank}`
+            ]);
+          }
+
+          // Validation Metadata
+          if (phoneValidation.validation_metadata) {
+            const metadata = phoneValidation.validation_metadata;
+            
+            if (metadata.error || metadata.validation_status === 'failed' || metadata.validation_status === 'error') {
+              // Show error information
+              subSections['Validation Status'] = [
+                ['Status', metadata.validation_status || 'Error'],
+                ['Error Message', metadata.error || 'Unknown error occurred'],
+                ['API Source', metadata.api_source || 'Unknown']
+              ];
+            } else {
+              // Show normal validation info
+              subSections['Validation Info'] = [
+                ['API Source', metadata.api_source || 'Unknown'],
+                ['Validation Date', metadata.validation_date || 'Unknown'],
+                ['Status', 'Success']
+              ];
+            }
+          }
+        } else {
+          // Show manual validation option when no phone validation data
+          subSections['Phone Validation'] = [
+            ['Status', 'No phone data available'],
+            ['Action Required', 
+              <Box key="phone-validation-button" sx={{ mt: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handlePhoneValidation}
+                  disabled={phoneValidationLoading || !searchCriteria}
+                  startIcon={phoneValidationLoading ? <CircularProgress size={16} /> : undefined}
+                >
+                  {phoneValidationLoading ? 'Validating...' : 'Validate Phone Numbers'}
+                </Button>
+                {!searchCriteria && (
+                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                    Search criteria not available
+                  </Typography>
+                )}
+              </Box>
+            ]
+          ];
+          
+          // Email validation placeholder
+          subSections['Email Validation'] = [
+            ['Email Status', 'Coming Soon'],
+            ['Email Deliverability', 'Coming Soon'],
+            ['Email Risk Score', 'Coming Soon']
+          ];
+          
+          // Address verification placeholder
+          subSections['Address Verification'] = [
+            ['Address Validation', 'Coming Soon'],
+            ['Address Type', 'Coming Soon']
+          ];
+        }
+        break;
+
+      case 'Philanthropy':
+        subSections['Giving Capacity'] = [
+          ['Estimated Capacity', 'Coming Soon'],
+          ['Giving History', 'Coming Soon'],
+          ['Preferred Causes', 'Coming Soon'],
+          ['Donor Segment', 'Coming Soon'],
+          ['Annual Giving Potential', 'Coming Soon']
+        ];
+        subSections['Foundation Involvement'] = [
+          ['Board Memberships', 'Coming Soon'],
+          ['Foundation Donations', 'Coming Soon'],
+          ['Grant Making', 'Coming Soon']
+        ];
+        break;
+
+      case 'Affiliations':
+        subSections['Professional Affiliations'] = [
+          ['Current Employer', 'Coming Soon'],
+          ['Job Title', 'Coming Soon'],
+          ['Industry', 'Coming Soon'],
+          ['Professional Associations', 'Coming Soon']
+        ];
+        subSections['Board Memberships'] = [
+          ['Current Boards', 'Coming Soon'],
+          ['Past Boards', 'Coming Soon'],
+          ['Committee Memberships', 'Coming Soon']
+        ];
+        break;
+
+      case 'Social Media':
+        subSections['Social Profiles'] = [
+          ['LinkedIn Profile', 'Coming Soon'],
+          ['Facebook Profile', 'Coming Soon'],
+          ['Twitter Profile', 'Coming Soon'],
+          ['Instagram Profile', 'Coming Soon']
+        ];
+        subSections['Social Insights'] = [
+          ['Social Influence Score', 'Coming Soon'],
+          ['Network Size', 'Coming Soon'],
+          ['Engagement Rate', 'Coming Soon']
+        ];
+        break;
+
+      case 'News':
+        subSections['Recent Mentions'] = [
+          ['News Articles', 'Coming Soon'],
+          ['Press Releases', 'Coming Soon'],
+          ['Awards & Recognition', 'Coming Soon']
+        ];
+        subSections['Media Coverage'] = [
+          ['Publication Frequency', 'Coming Soon'],
+          ['Media Sentiment', 'Coming Soon'],
+          ['Key Topics', 'Coming Soon']
+        ];
+        break;
         
 
       default:
@@ -643,7 +849,12 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
     'Consumer Behavior',
     'Financial',
     'Political Interests', 
-    'Charitable Activities'
+    'Charitable Activities',
+    'Contact Validation',
+    'Philanthropy',
+    'Affiliations',
+    'Social Media',
+    'News'
   ];
 
   return (

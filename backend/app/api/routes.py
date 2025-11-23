@@ -11,6 +11,7 @@ import time
 from models import SearchRequest
 from services.experian_service import ExperianService
 from services.knowledgecore_service import KnowledgeCoreService
+from services.phone_validation_service import PhoneValidationService
 from core.logging_config import setup_logging, log_api_request, log_api_response
 from config import DEBUG
 from auth import get_current_user_id
@@ -22,6 +23,7 @@ logger = setup_logging(DEBUG)
 router = APIRouter()
 experian_service = ExperianService()
 kc_service = KnowledgeCoreService()
+phone_validation_service = PhoneValidationService()
 security = HTTPBearer()
 
 @router.post("/search")
@@ -100,11 +102,52 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "search": "/search",
+            "validate-phone": "/validate-phone",
             "health": "/health"
         }
     }
     log_api_response(logger, "/", 200, len(json.dumps(response)))
     return response
+
+@router.post("/validate-phone")
+async def validate_phone_numbers(
+    search_request: SearchRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Validate and enrich phone numbers for contact validation
+    (Protected endpoint - requires authentication)
+    """
+    start_time = time.time()
+    
+    # Validate authentication token
+    user_id = get_current_user_id(credentials.credentials)
+    logger.info(f"Authenticated phone validation request from user ID: {user_id}")
+    
+    # Log incoming request
+    log_api_request(logger, "/validate-phone", search_request.dict())
+    
+    try:
+        # Call phone validation service
+        result = await phone_validation_service.validate_phone_numbers(search_request)
+        
+        # Log successful completion
+        total_time = time.time() - start_time
+        response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
+        log_api_response(logger, "/validate-phone", 200, len(response_json))
+        logger.info(f"Phone validation completed successfully in {total_time:.2f} seconds")
+        
+        return result
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions without additional logging (already logged in service)
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in phone validation endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Phone validation failed: {str(e)}"
+        )
 
 @router.get("/health")
 async def health_check():

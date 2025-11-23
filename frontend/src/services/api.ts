@@ -106,3 +106,17 @@ export const searchKnowledgeCore = async (formData: SearchFormData): Promise<Sea
     throw new Error('An unexpected error occurred');
   }
 };
+
+// Phone Validation API
+export const validatePhoneNumbers = async (formData: SearchFormData): Promise<any> => {
+  try {
+    const response = await apiClient.post('/validate-phone', formData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Phone validation failed';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred during phone validation');
+  }
+};

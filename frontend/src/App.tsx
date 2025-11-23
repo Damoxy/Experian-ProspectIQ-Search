@@ -20,7 +20,7 @@ import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
 import AnimatedBubbles from './components/AnimatedBubbles';
-import { searchKnowledgeCore } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -92,6 +92,25 @@ const AppContent: React.FC = () => {
 
     try {
       const data = await searchKnowledgeCore(formData);
+      
+      // If the result comes from Experian fallback (no database records found),
+      // also call phone validation to enrich contact information
+      if (data && data.fallback_source === 'experian_api' && data.database_records_found === 0) {
+        try {
+          console.log('Database records not found, attempting phone validation...');
+          const phoneData = await validatePhoneNumbers(formData);
+          
+          // Merge phone validation data with the main results
+          if (phoneData && phoneData.phone_validation) {
+            data.phone_validation = phoneData.phone_validation;
+            console.log('Phone validation data merged successfully');
+          }
+        } catch (phoneErr) {
+          console.warn('Phone validation failed:', phoneErr instanceof Error ? phoneErr.message : 'Unknown error');
+          // Don't fail the entire search if phone validation fails
+        }
+      }
+      
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
@@ -423,7 +442,7 @@ const AppContent: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Search Results
               </Typography>
-              <TabbedResults data={results} />
+              <TabbedResults data={results} searchCriteria={searchCriteria || undefined} />
             </Paper>
           </Box>
         </Box>
