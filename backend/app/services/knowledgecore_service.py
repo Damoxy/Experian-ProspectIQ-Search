@@ -4,9 +4,10 @@ KnowledgeCore database service - handles database-first search operations
 
 import logging
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
-from database import Donor, get_givingtrend_db
+from database import Donor, Transaction, get_givingtrend_db
 from models import SearchRequest
 from core.logging_config import setup_logging
 from config import DEBUG
@@ -52,6 +53,86 @@ class KnowledgeCoreService:
             normalized = normalized.replace(full, abbrev)
         
         return normalized
+    
+    def calculate_gift_metrics(self, constituent_id: str, db: Session) -> Dict[str, Any]:
+        """
+        Calculate gift metrics from Transaction table for a given constituent
+        
+        Args:
+            constituent_id: The constituent ID to search for
+            db: Database session
+            
+        Returns:
+            Dictionary containing gift metrics with dates
+        """
+        try:
+            # Query all transactions for this constituent
+            transactions = db.query(Transaction).filter(
+                Transaction.Constituent_ID == constituent_id
+            ).all()
+            
+            if not transactions:
+                return {
+                    "lifetime_giving": "No transactions found",
+                    "largest_gift": "No transactions found",
+                    "first_gift": "No transactions found", 
+                    "latest_gift": "No transactions found"
+                }
+            
+            # Convert gift amounts to float for calculations (handle various formats)
+            valid_transactions = []
+            for trans in transactions:
+                try:
+                    # Clean and convert gift amount
+                    amount_str = str(trans.Gift_Amount).replace('$', '').replace(',', '').strip()
+                    if amount_str and amount_str not in ['', 'None', 'NULL']:
+                        amount = float(amount_str)
+                        if amount > 0:  # Only positive amounts
+                            valid_transactions.append({
+                                'amount': amount,
+                                'date': trans.Gift_Date,
+                                'original_amount': trans.Gift_Amount
+                            })
+                except (ValueError, TypeError):
+                    # Skip invalid amounts
+                    continue
+            
+            if not valid_transactions:
+                return {
+                    "lifetime_giving": "No valid transactions",
+                    "largest_gift": "No valid transactions",
+                    "first_gift": "No valid transactions",
+                    "latest_gift": "No valid transactions"
+                }
+            
+            # Calculate metrics
+            total_giving = sum(t['amount'] for t in valid_transactions)
+            
+            # Find largest gift
+            largest = max(valid_transactions, key=lambda x: x['amount'])
+            
+            # Find first gift (earliest date)
+            first = min(valid_transactions, key=lambda x: x['date'] if x['date'] else datetime.min)
+            
+            # Find latest gift (most recent date)
+            latest = max(valid_transactions, key=lambda x: x['date'] if x['date'] else datetime.min)
+            
+            # Format results
+            return {
+                "lifetime_giving": f"${total_giving:,.2f}",
+                "largest_gift": f"${largest['original_amount']} ({largest['date'].strftime('%m/%d/%Y') if largest['date'] else 'No date'})",
+                "first_gift": f"${first['original_amount']} ({first['date'].strftime('%m/%d/%Y') if first['date'] else 'No date'})",
+                "latest_gift": f"${latest['original_amount']} ({latest['date'].strftime('%m/%d/%Y') if latest['date'] else 'No date'})"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating gift metrics for constituent {constituent_id}: {str(e)}")
+            return {
+                "lifetime_giving": "Error calculating",
+                "largest_gift": "Error calculating",
+                "first_gift": "Error calculating",
+                "latest_gift": "Error calculating"
+            }
     
     async def search_donors(self, search_request: SearchRequest, db: Session) -> List[Dict[str, Any]]:
         """
@@ -138,7 +219,7 @@ class KnowledgeCoreService:
             self.logger.error(f"Error searching KnowledgeCore database: {str(e)}")
             return []
     
-    def format_consumer_behavior_response(self, donors: List[Dict[str, Any]], search_request: SearchRequest) -> Dict[str, Any]:
+    def format_consumer_behavior_response(self, donors: List[Dict[str, Any]], search_request: SearchRequest, db: Session = None) -> Dict[str, Any]:
         """
         Format database results to match the expected Experian API response structure
         
@@ -171,6 +252,22 @@ class KnowledgeCoreService:
         # Format donor records for consumer behavior section
         formatted_records = []
         for donor in donors:
+            # Calculate gift metrics if database session is available
+            gift_metrics = {}
+            if db and donor["constituent_id"]:
+                gift_metrics = self.calculate_gift_metrics(donor["constituent_id"], db)
+            
+            # Prepare contact_info with gift metrics
+            contact_info = {
+                "constituent_id": donor["constituent_id"],
+                "phone": donor["phone"],
+                "email": donor["email"]
+            }
+            
+            # Add gift metrics if available
+            if gift_metrics:
+                contact_info.update(gift_metrics)
+            
             formatted_record = {
                 "personal_info": {
                     "first_name": donor["first_name"],
@@ -185,11 +282,7 @@ class KnowledgeCoreService:
                     "zip_code": donor["zip_code"],
                     "full_address": f"{donor['address']}, {donor['city']}, {donor['state']} {donor['zip_code']}"
                 },
-                "contact_info": {
-                    "constituent_id": donor["constituent_id"],
-                    "phone": donor["phone"],
-                    "email": donor["email"]
-                },
+                "contact_info": contact_info,
                 "match_quality": {
                     "address_similarity": donor["address_match_score"],
                     "confidence_level": "High" if donor["address_match_score"] > 0.7 else "Medium" if donor["address_match_score"] > 0.3 else "Low"

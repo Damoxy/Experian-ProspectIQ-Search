@@ -36,14 +36,28 @@ const Header: React.FC = () => {
     <AppBar position="fixed" sx={{ mb: 3, backgroundColor: '#283E56', zIndex: 1300 }}>
       <Toolbar>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          <img 
-            src="/knowledgecore.jpeg" 
-            alt="Knowledge Core Logo" 
-            style={{ height: '40px', marginRight: '15px' }}
-          />
-          <Typography variant="h6" component="div">
-            Knowledge Core IQ Search
-          </Typography>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer',
+              '&:hover': {
+                opacity: 0.8,
+                transform: 'scale(1.02)',
+                transition: 'all 0.2s ease'
+              }
+            }}
+            onClick={() => window.location.reload()}
+          >
+            <img 
+              src="/knowledgecore.jpeg" 
+              alt="Knowledge Core Logo" 
+              style={{ height: '40px', marginRight: '15px' }}
+            />
+            <Typography variant="h6" component="div">
+              Knowledge Core IQ Search
+            </Typography>
+          </Box>
         </Box>
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

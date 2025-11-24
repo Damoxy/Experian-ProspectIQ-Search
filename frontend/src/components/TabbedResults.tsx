@@ -26,10 +26,12 @@ import {
   Remove as RemoveIcon,
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
-import { SearchResult } from '../types';
+import { SearchResult, SearchFormData } from '../types';
+import { validatePhoneNumbers, validateEmailAddress } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
+  searchCriteria?: SearchFormData;
 }
 
 interface TabPanelProps {
@@ -54,12 +56,16 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
+const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) => {
   const [value, setValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [aiInsightsLoading, setAiInsightsLoading] = useState<{ [key: string]: boolean }>({});
   const [aiInsightsResults, setAiInsightsResults] = useState<{ [key: string]: string }>({});
+  const [phoneValidationLoading, setPhoneValidationLoading] = useState(false);
+  const [phoneValidationData, setPhoneValidationData] = useState<any>(null);
+  const [emailValidationLoading, setEmailValidationLoading] = useState(false);
+  const [emailValidationData, setEmailValidationData] = useState<any>(null);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -83,6 +89,99 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       }));
       setAiInsightsLoading(prev => ({ ...prev, [category]: false }));
     }, 2000);
+  };
+
+  const handlePhoneValidation = async () => {
+    if (!searchCriteria) {
+      console.warn('No search criteria available for phone validation');
+      return;
+    }
+
+    setPhoneValidationLoading(true);
+    try {
+      console.log('Manual phone validation requested...');
+      const phoneData = await validatePhoneNumbers(searchCriteria);
+      console.log('Raw phone validation response:', phoneData);
+      
+      if (phoneData && phoneData.phone_validation) {
+        console.log('Phone validation data found:', phoneData.phone_validation);
+        setPhoneValidationData(phoneData.phone_validation);
+        console.log('Phone validation completed');
+        
+        // Check if there was an error in the response
+        if (phoneData.phone_validation.validation_metadata?.error) {
+          console.warn('Phone validation API returned error:', phoneData.phone_validation.validation_metadata.error);
+        } else {
+          console.log('Phone validation successful, total phones:', phoneData.phone_validation.total_phones);
+        }
+      } else {
+        console.warn('No phone_validation data in response:', phoneData);
+      }
+    } catch (error) {
+      console.error('Phone validation request failed:', error);
+      
+      // Create an error response for display
+      setPhoneValidationData({
+        phones_found: [],
+        mobile_phones: [],
+        landline_phones: [],
+        dnc_compliant_phones: [],
+        non_dnc_phones: [],
+        total_phones: 0,
+        validation_metadata: {
+          error: error instanceof Error ? error.message : 'Network error occurred',
+          api_source: 'experian_aperture',
+          validation_status: 'network_error'
+        }
+      });
+    } finally {
+      setPhoneValidationLoading(false);
+    }
+  };
+
+  const handleEmailValidation = async () => {
+    if (!searchCriteria) {
+      console.warn('No search criteria available for email validation');
+      return;
+    }
+
+    setEmailValidationLoading(true);
+    try {
+      console.log('Manual email validation requested...');
+      const emailData = await validateEmailAddress(searchCriteria);
+      console.log('Raw email validation response:', emailData);
+      
+      if (emailData && emailData.email_validation) {
+        console.log('Email validation data found:', emailData.email_validation);
+        setEmailValidationData(emailData.email_validation);
+        console.log('Email validation completed');
+        
+        // Check if there was an error in the response
+        if (emailData.email_validation.validation_metadata?.error) {
+          console.warn('Email validation API returned error:', emailData.email_validation.validation_metadata.error);
+        } else {
+          console.log('Email validation successful, email found:', emailData.email_validation.email_found);
+        }
+      } else {
+        console.warn('No email_validation data in response:', emailData);
+      }
+    } catch (error) {
+      console.error('Email validation request failed:', error);
+      
+      // Create an error response for display
+      setEmailValidationData({
+        email_found: null,
+        email_type: null,
+        total_emails: 0,
+        validation_metadata: {
+          error: error instanceof Error ? error.message : 'Network error occurred',
+          api_source: 'experian_aperture',
+          validation_status: 'network_error'
+        }
+      });
+    } finally {
+      setEmailValidationLoading(false);
+    }
   };
 
   // Helper function to format field names for display
@@ -140,6 +239,11 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       'Financial': [] as Array<[string, any]>,
       'Political Interests': [] as Array<[string, any]>,
       'Charitable Activities': [] as Array<[string, any]>,
+      'Contact Validation': [] as Array<[string, any]>,
+      'Philanthropy': [] as Array<[string, any]>,
+      'Affiliations': [] as Array<[string, any]>,
+      'Social Media': [] as Array<[string, any]>,
+      'News': [] as Array<[string, any]>,
     };
 
     const flattenObject = (obj: any, prefix = ''): Array<[string, any]> => {
@@ -172,8 +276,37 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
     flattenedData.forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
       
-      // Consumer Behavior patterns
+      // Contact Validation patterns (check first to avoid conflicts)
       if (
+        lowerKey.includes('phone_validation') ||
+        lowerKey.includes('phones_found') ||
+        lowerKey.includes('mobile_phones') ||
+        lowerKey.includes('landline_phones') ||
+        lowerKey.includes('dnc_compliant_phones') ||
+        lowerKey.includes('non_dnc_phones') ||
+        lowerKey.includes('email_validation') ||
+        lowerKey.includes('email_found') ||
+        lowerKey.includes('email_type') ||
+        lowerKey.includes('validation_metadata') ||
+        (lowerKey.includes('phone') && (
+          lowerKey.includes('validation') ||
+          lowerKey.includes('found') ||
+          lowerKey.includes('mobile') ||
+          lowerKey.includes('landline') ||
+          lowerKey.includes('dnc') ||
+          lowerKey.includes('rank') ||
+          lowerKey.includes('status')
+        )) ||
+        (lowerKey.includes('email') && (
+          lowerKey.includes('validation') ||
+          lowerKey.includes('found') ||
+          lowerKey.includes('type')
+        ))
+      ) {
+        categories['Contact Validation'].push([key, value]);
+      }
+      // Consumer Behavior patterns
+      else if (
         lowerKey.includes('acty/int:') ||
         lowerKey.includes('activity') ||
         lowerKey.includes('interest') ||
@@ -322,10 +455,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
       case 'Profile':
         // Add predefined Overview Section tiles
         subSections['Overview Section'] = [
-          ['Lifetime Giving', 'Coming Soon'],
-          ['Largest Gift', 'Coming Soon'],
-          ['First Gift', 'Coming Soon'],
-          ['Latest Gift', 'Coming Soon'],
           ['Overall Score', 'Coming Soon'],
           ['Propensity', 'Coming Soon'],
           ['Capacity', 'Coming Soon'],
@@ -398,6 +527,175 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
             subSections['Charitable Activities'].push([key, value]);
           }
         });
+        break;
+
+      case 'Contact Validation':
+        // Use either the existing phone validation data or manually fetched data
+        const phoneValidation = data.phone_validation || phoneValidationData;
+        console.log('Contact Validation - data.phone_validation:', data.phone_validation);
+        console.log('Contact Validation - phoneValidationData:', phoneValidationData);
+        console.log('Contact Validation - final phoneValidation:', phoneValidation);
+        
+        if (phoneValidation) {
+          // Create a single table with all phone validation data
+          const allPhones: any[] = [];
+          
+          // Combine mobile phones
+          if (phoneValidation.mobile_phones && phoneValidation.mobile_phones.length > 0) {
+            phoneValidation.mobile_phones.forEach((phone: any) => {
+              allPhones.push({
+                type: 'Mobile',
+                number: phone.number,
+                dnc_status: phone.dnc_status ? 'Yes' : 'No',
+                dnc_date: phone.dnc_date || 'N/A',
+                rank: phone.rank
+              });
+            });
+          }
+          
+          // Combine landline phones
+          if (phoneValidation.landline_phones && phoneValidation.landline_phones.length > 0) {
+            phoneValidation.landline_phones.forEach((phone: any) => {
+              allPhones.push({
+                type: 'Landline',
+                number: phone.number,
+                dnc_status: phone.dnc_status ? 'Yes' : 'No',
+                dnc_date: phone.dnc_date || 'N/A',
+                rank: phone.rank
+              });
+            });
+          }
+          
+          // Sort by rank (priority)
+          allPhones.sort((a, b) => a.rank - b.rank);
+          
+          // Store phone data for custom table rendering
+          if (allPhones.length > 0) {
+            subSections['Phone Numbers'] = [
+              ['__PHONE_TABLE__', JSON.stringify(allPhones)]
+            ];
+          }
+          
+          // Add validation status if there's an error
+          const metadata = phoneValidation.validation_metadata;
+          if (metadata && (metadata.error || metadata.validation_status === 'failed' || metadata.validation_status === 'error')) {
+            subSections['Validation Status'] = [
+              ['Status', 'Error'],
+              ['Error Message', metadata.error || 'Unknown error occurred']
+            ];
+          }
+        } else {
+          // Show when no phone validation data is available
+          subSections['Phone Validation'] = [
+            ['Status', 'No phone data found during search'],
+            ['Note', 'Phone validation is automatically performed during search']
+          ];
+        }
+
+        // Email Validation Section
+        const emailValidation = data.email_validation || emailValidationData;
+        console.log('Contact Validation - emailValidationData:', emailValidationData);
+        console.log('Contact Validation - final emailValidation:', emailValidation);
+        
+        if (emailValidation && emailValidation.emails_found && emailValidation.emails_found.length > 0) {
+          // Create a single table with all email validation data
+          const allEmails: any[] = [];
+          
+          emailValidation.emails_found.forEach((email: any) => {
+            allEmails.push({
+              type: email.type || 'Unknown',
+              address: email.address || email,
+              rank: email.rank || 0
+            });
+          });
+          
+          // Sort by rank (priority)
+          allEmails.sort((a, b) => a.rank - b.rank);
+          
+          // Store email data for custom table rendering
+          if (allEmails.length > 0) {
+            subSections['Email Addresses'] = [
+              ['__EMAIL_TABLE__', JSON.stringify(allEmails)]
+            ];
+          }
+          
+          // Add validation status if there's an error
+          const metadata = emailValidation.validation_metadata;
+          if (metadata && (metadata.error || metadata.validation_status === 'failed' || metadata.validation_status === 'error')) {
+            subSections['Validation Status'] = [
+              ['Status', 'Error'],
+              ['Error Message', metadata.error || 'Unknown error occurred']
+            ];
+          }
+        } else {
+          // Show when no email validation data is available
+          subSections['Email Validation'] = [
+            ['Status', 'No email data found during search'],
+            ['Note', 'Email validation is automatically performed during search']
+          ];
+          
+          // Address verification placeholder
+          subSections['Address Verification'] = [
+            ['Address Validation', 'Coming Soon'],
+            ['Address Type', 'Coming Soon']
+          ];
+        }
+        break;
+
+      case 'Philanthropy':
+        subSections['Giving Capacity'] = [
+          ['Estimated Capacity', 'Coming Soon'],
+          ['Giving History', 'Coming Soon'],
+          ['Preferred Causes', 'Coming Soon'],
+          ['Donor Segment', 'Coming Soon'],
+          ['Annual Giving Potential', 'Coming Soon']
+        ];
+        subSections['Foundation Involvement'] = [
+          ['Board Memberships', 'Coming Soon'],
+          ['Foundation Donations', 'Coming Soon'],
+          ['Grant Making', 'Coming Soon']
+        ];
+        break;
+
+      case 'Affiliations':
+        subSections['Professional Affiliations'] = [
+          ['Current Employer', 'Coming Soon'],
+          ['Job Title', 'Coming Soon'],
+          ['Industry', 'Coming Soon'],
+          ['Professional Associations', 'Coming Soon']
+        ];
+        subSections['Board Memberships'] = [
+          ['Current Boards', 'Coming Soon'],
+          ['Past Boards', 'Coming Soon'],
+          ['Committee Memberships', 'Coming Soon']
+        ];
+        break;
+
+      case 'Social Media':
+        subSections['Social Profiles'] = [
+          ['LinkedIn Profile', 'Coming Soon'],
+          ['Facebook Profile', 'Coming Soon'],
+          ['Twitter Profile', 'Coming Soon'],
+          ['Instagram Profile', 'Coming Soon']
+        ];
+        subSections['Social Insights'] = [
+          ['Social Influence Score', 'Coming Soon'],
+          ['Network Size', 'Coming Soon'],
+          ['Engagement Rate', 'Coming Soon']
+        ];
+        break;
+
+      case 'News':
+        subSections['Recent Mentions'] = [
+          ['News Articles', 'Coming Soon'],
+          ['Press Releases', 'Coming Soon'],
+          ['Awards & Recognition', 'Coming Soon']
+        ];
+        subSections['Media Coverage'] = [
+          ['Publication Frequency', 'Coming Soon'],
+          ['Media Sentiment', 'Coming Soon'],
+          ['Key Topics', 'Coming Soon']
+        ];
         break;
         
 
@@ -571,47 +869,276 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {fields.map(([key, value], index) => (
-              <TableRow
-                key={`${key}-${index}`}
-                sx={{
-                  '&:nth-of-type(odd)': {
-                    backgroundColor: 'grey.50',
-                  },
-                  '&:hover': {
-                    backgroundColor: '#6B7280',
-                    transform: 'scale(1.005)',
-                    transition: 'all 0.2s ease-in-out',
-                    '& .MuiTableCell-root': {
-                      color: 'white',
-                    }
-                  },
-                  cursor: 'default',
-                }}
-              >
-                <TableCell 
-                  component="th" 
-                  scope="row" 
-                  sx={{ 
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    borderRight: '1px solid',
-                    borderColor: 'divider',
-                    verticalAlign: 'top',
-                    py: 2,
+            {fields.map(([key, value], index) => {
+              // Special handling for phone validation table
+              if (key === '__PHONE_TABLE__') {
+                const phoneData = JSON.parse(value as string);
+                return (
+                  <React.Fragment key={`phone-table-${index}`}>
+                    {/* Phone table headers */}
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell colSpan={2} sx={{ p: 0, border: 'none' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                width: '60px',
+                                textAlign: 'center'
+                              }}>S/N</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Phone Type</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Phone Number</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>DNC Status</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1
+                              }}>DNC Revised Date</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {phoneData.map((phone: any, phoneIndex: number) => (
+                              <TableRow 
+                                key={phoneIndex}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#666'
+                                }}>{phoneIndex + 1}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{phone.type}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1, 
+                                  fontWeight: 600,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{phone.number}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  color: phone.dnc_status === 'Yes' ? '#d32f2f' : '#2e7d32',
+                                  fontWeight: 600,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{phone.dnc_status}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1 
+                                }}>{phone.dnc_date}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              }
+              
+              // Special handling for validation buttons
+              if (key === '__PHONE_VALIDATION_BUTTON__') {
+                return (
+                  <TableRow key={`phone-validation-${index}`}>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', borderRight: '1px solid', borderColor: 'divider' }}>
+                      Action Required
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ mt: 1 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={handlePhoneValidation}
+                          disabled={phoneValidationLoading || !searchCriteria}
+                          startIcon={phoneValidationLoading ? <CircularProgress size={16} /> : undefined}
+                        >
+                          {phoneValidationLoading ? 'Validating...' : 'Validate Phone Numbers'}
+                        </Button>
+                        {!searchCriteria && (
+                          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                            Search criteria not available
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              // Custom email table rendering
+              if (key === '__EMAIL_TABLE__') {
+                const emails = JSON.parse(value);
+                return (
+                  <React.Fragment key={`email-table-${index}`}>
+                    <TableRow>
+                      <TableCell 
+                        colSpan={2} 
+                        sx={{ 
+                          p: 0,
+                          borderBottom: 'none'
+                        }}
+                      >
+                        <Table size="small" sx={{ backgroundColor: '#f8f9fa' }}>
+                          <TableHead>
+                            <TableRow sx={{ backgroundColor: '#e9ecef' }}>
+                              <TableCell sx={{ 
+                                fontSize: '0.875rem', 
+                                fontWeight: 700, 
+                                py: 1.5,
+                                borderRight: '1px solid #e0e0e0',
+                                textAlign: 'center',
+                                width: '60px'
+                              }}>S/N</TableCell>
+                              <TableCell sx={{ 
+                                fontSize: '0.875rem', 
+                                fontWeight: 700, 
+                                py: 1.5,
+                                borderRight: '1px solid #e0e0e0',
+                                width: '120px'
+                              }}>Email Type</TableCell>
+                              <TableCell sx={{ 
+                                fontSize: '0.875rem', 
+                                fontWeight: 700, 
+                                py: 1.5 
+                              }}>Email Address</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {emails.map((email: any, emailIndex: number) => (
+                              <TableRow 
+                                key={`email-${emailIndex}`}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#666'
+                                }}>{emailIndex + 1}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{email.type}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1, 
+                                  fontWeight: 600
+                                }}>{email.address}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              }
+              
+              if (key === '__EMAIL_VALIDATION_BUTTON__') {
+                return (
+                  <TableRow key={`email-validation-${index}`}>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', borderRight: '1px solid', borderColor: 'divider' }}>
+                      Action Required
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ mt: 1 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={handleEmailValidation}
+                          disabled={emailValidationLoading || !searchCriteria}
+                          startIcon={emailValidationLoading ? <CircularProgress size={16} /> : undefined}
+                          sx={{ ml: 1 }}
+                        >
+                          {emailValidationLoading ? 'Validating...' : 'Validate Email Address'}
+                        </Button>
+                        {!searchCriteria && (
+                          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+                            Search criteria not available
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+              
+              // Regular table row rendering
+              return (
+                <TableRow
+                  key={`${key}-${index}`}
+                  sx={{
+                    '&:nth-of-type(odd)': {
+                      backgroundColor: 'grey.50',
+                    },
+                    '&:hover': {
+                      backgroundColor: '#6B7280',
+                      transform: 'scale(1.005)',
+                      transition: 'all 0.2s ease-in-out',
+                      '& .MuiTableCell-root': {
+                        color: 'white',
+                      }
+                    },
+                    cursor: 'default',
                   }}
                 >
-                  {formatFieldName(key)}
-                </TableCell>
-                <TableCell sx={{ 
-                  fontSize: '0.875rem',
-                  py: 2,
-                  verticalAlign: 'top',
-                }}>
-                  {formatValue(value)}
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell 
+                    component="th" 
+                    scope="row" 
+                    sx={{ 
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      borderRight: '1px solid',
+                      borderColor: 'divider',
+                      verticalAlign: 'top',
+                      py: 2,
+                    }}
+                  >
+                    {formatFieldName(key)}
+                  </TableCell>
+                  <TableCell sx={{ 
+                    fontSize: '0.875rem',
+                    py: 2,
+                    verticalAlign: 'top',
+                  }}>
+                    {formatValue(value)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
         <Box sx={{ 
@@ -643,8 +1170,27 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
     'Consumer Behavior',
     'Financial',
     'Political Interests', 
-    'Charitable Activities'
+    'Charitable Activities',
+    'Contact Validation',
+    'Philanthropy',
+    'Affiliations',
+    'Social Media',
+    'News'
   ];
+
+  // Define color themes for each tab
+  const tabColors = {
+    'Profile': { primary: '#1976d2', light: '#e3f2fd', chip: '#1565c0' },
+    'Consumer Behavior': { primary: '#388e3c', light: '#e8f5e8', chip: '#2e7d32' },
+    'Financial': { primary: '#f57c00', light: '#fff3e0', chip: '#ef6c00' },
+    'Political Interests': { primary: '#7b1fa2', light: '#f3e5f5', chip: '#6a1b9a' },
+    'Charitable Activities': { primary: '#d32f2f', light: '#ffebee', chip: '#c62828' },
+    'Contact Validation': { primary: '#00796b', light: '#e0f2f1', chip: '#00695c' },
+    'Philanthropy': { primary: '#5d4037', light: '#efebe9', chip: '#4e342e' },
+    'Affiliations': { primary: '#303f9f', light: '#e8eaf6', chip: '#283593' },
+    'Social Media': { primary: '#e91e63', light: '#fce4ec', chip: '#c2185b' },
+    'News': { primary: '#455a64', light: '#eceff1', chip: '#37474f' }
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -688,35 +1234,48 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
           sx={{
             '& .MuiTabs-indicator': {
               height: 3,
+              backgroundColor: tabColors[tabLabels[value] as keyof typeof tabColors]?.primary || '#1976d2',
             },
             '& .MuiTab-root': {
               minHeight: 64,
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '0.875rem',
-              '&.Mui-selected': {
-                color: 'primary.main',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
               },
             },
           }}
         >
           {tabLabels.map((label, index) => {
             const count = categorizedData[label]?.length || 0;
+            const colors = tabColors[label as keyof typeof tabColors];
+            const isSelected = value === index;
+            
             return (
               <Tab
                 key={label}
                 label={
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'inherit' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 'inherit',
+                        color: isSelected ? colors.primary : 'inherit'
+                      }}
+                    >
                       {label}
                     </Typography>
                     <Chip 
                       label={count} 
                       size="small" 
-                      color={count > 0 ? "primary" : "default"}
                       sx={{ 
                         height: 20, 
                         fontSize: '0.75rem',
+                        backgroundColor: count > 0 ? (isSelected ? colors.primary : colors.light) : '#f5f5f5',
+                        color: count > 0 ? (isSelected ? 'white' : colors.chip) : '#9e9e9e',
+                        fontWeight: 600,
                         '& .MuiChip-label': { px: 1 }
                       }}
                     />
@@ -724,6 +1283,14 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data }) => {
                 }
                 id={`results-tab-${index}`}
                 aria-controls={`results-tabpanel-${index}`}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: colors.light,
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: colors.primary,
+                    }
+                  }
+                }}
               />
             );
           })}
