@@ -12,7 +12,7 @@ import {
   createTheme,
   Chip,
 } from '@mui/material';
-import { Person, Home, Phone, Email, Badge } from '@mui/icons-material';
+import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
 import Header from './components/Header';
@@ -305,12 +305,25 @@ const AppContent: React.FC = () => {
                   '&::before': {
                     content: '""',
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c)',
-                    borderRadius: '12px 12px 0 0',
+                    top: '-3px',
+                    left: '-3px',
+                    right: '-3px',
+                    bottom: '-3px',
+                    background: 'linear-gradient(0deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    borderRadius: '15px',
+                    zIndex: -1,
+                    animation: 'rotatingBorder 4s linear infinite',
+                  },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '0px',
+                    left: '0px',
+                    right: '0px',
+                    bottom: '0px',
+                    background: '#283E56',
+                    borderRadius: '12px',
+                    zIndex: -1,
                   },
                   animation: 'slideInDown 0.6s ease-out',
                   '@keyframes slideInDown': {
@@ -323,6 +336,23 @@ const AppContent: React.FC = () => {
                       opacity: 1,
                     },
                   },
+                  '@keyframes rotatingBorder': {
+                    '0%': {
+                      background: 'linear-gradient(0deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    },
+                    '25%': {
+                      background: 'linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    },
+                    '50%': {
+                      background: 'linear-gradient(180deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    },
+                    '75%': {
+                      background: 'linear-gradient(270deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    },
+                    '100%': {
+                      background: 'linear-gradient(360deg, #3498db, #2ecc71, #f39c12, #e74c3c, #9b59b6, #3498db)',
+                    },
+                  },
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: '0 8px 25px rgba(40, 62, 86, 0.3)',
@@ -331,72 +361,202 @@ const AppContent: React.FC = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, alignItems: 'start' }}>
-                  {/* Left Column */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {/* Name */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Person sx={{ fontSize: 18, opacity: 0.8 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '70px' }}>
-                        Name:
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '0.3px' }}>
-                        {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
-                      </Typography>
-                    </Box>
-                    
-                    {/* Address */}
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                      <Home sx={{ fontSize: 18, opacity: 0.8, mt: 0.5 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '70px', mt: 0.5 }}>
-                        Address:
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 500, lineHeight: 1.4, opacity: 0.95 }}>
-                        {searchCriteria.STREET1}
-                        {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
-                        <br />
-                        {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
-                      </Typography>
-                    </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: 'auto auto auto', gap: '24px 32px', alignItems: 'start' }}>
+                  {/* Row 1, Column 1 - Name */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person sx={{ fontSize: 18, opacity: 0.8 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                      Name:
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '0.3px' }}>
+                      {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
+                    </Typography>
                   </Box>
                   
-                  {/* Right Column - Contact Info (Database only) */}
-                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      {/* Phone */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Phone sx={{ fontSize: 18, opacity: 0.8 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
-                          Phone:
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
-                          {results.results.consumer_behavior.records[0].contact_info.phone || 'Not Available'}
-                        </Typography>
-                      </Box>
-                      
-                      {/* Email */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Email sx={{ fontSize: 18, opacity: 0.8 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
-                          Email:
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
-                          {results.results.consumer_behavior.records[0].contact_info.email || 'Not Available'}
-                        </Typography>
-                      </Box>
-                      
-                      {/* Constituent ID */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Badge sx={{ fontSize: 18, opacity: 0.8 }} />
-                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '120px' }}>
-                          Constituent ID:
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
-                          {results.results.consumer_behavior.records[0].contact_info.constituent_id || 'Not Available'}
-                        </Typography>
+                  {/* Row 1, Column 2 - Phone */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Phone sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        Phone:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                        {results.results.consumer_behavior.records[0].contact_info.phone || 'Not Available'}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+                  
+                  {/* Row 1, Column 3 - Largest Gift */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TrendingUp sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        Largest Gift:
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.largest_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>Not Available</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body1" sx={{ fontWeight: 700, opacity: 0.95, color: 'white' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
                       </Box>
                     </Box>
+                  ) : (
+                    <Box></Box>
                   )}
+
+                  {/* Row 2, Column 1 - Address */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <Home sx={{ fontSize: 18, opacity: 0.8, mt: 0.5 }} />
+                    <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px', mt: 0.5 }}>
+                      Address:
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500, lineHeight: 1.4, opacity: 0.95 }}>
+                      {searchCriteria.STREET1}
+                      {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
+                      <br />
+                      {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
+                    </Typography>
+                  </Box>
+
+                  {/* Row 2, Column 2 - Email */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <Email sx={{ fontSize: 18, opacity: 0.8, mt: 0.5 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px', mt: 0.5 }}>
+                        Email:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95, lineHeight: 1.4 }}>
+                        {results.results.consumer_behavior.records[0].contact_info.email || 'Not Available'}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+                  
+                  {/* Row 2, Column 3 - First Gift */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <DateRange sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        First Gift:
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.first_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>Not Available</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body1" sx={{ fontWeight: 700, opacity: 0.95, color: 'white' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+
+                  {/* Row 3, Column 1 - Constituent ID */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Badge sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        Constituent ID:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                        {results.results.consumer_behavior.records[0].contact_info.constituent_id || 'Not Available'}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+
+                  {/* Row 3, Column 2 - Lifetime Giving */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AttachMoney sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        Lifetime Giving:
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 700, opacity: 0.95, color: 'white' }}>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.lifetime_giving;
+                          if (!value || value === 'Not Available') return 'Not Available';
+                          const match = value.match(/^\$[\d,.]+(\.[ 0-9]{2})?/);
+                          return match ? match[0] : value;
+                        })()}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+                  
+                  {/* Row 3, Column 3 - Latest Gift */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Schedule sx={{ fontSize: 18, opacity: 0.8 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, minWidth: '100px' }}>
+                        Latest Gift:
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.latest_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>Not Available</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body1" sx={{ fontWeight: 700, opacity: 0.95, color: 'white' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Box></Box>
+                  )}
+
                 </Box>
                 
                 {/* Source Badge - positioned absolutely at extreme right */}
@@ -430,6 +590,7 @@ const AppContent: React.FC = () => {
                 />
               </Box>
             )}
+
             
             <Paper elevation={3} sx={{ 
               p: 3, 

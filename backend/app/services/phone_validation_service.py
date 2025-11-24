@@ -41,8 +41,20 @@ class PhoneValidationService:
         middle_name = ""  # SearchRequest doesn't have middle name field
         last_name = search_request.LAST_NAME or ""
         
-        # Extract address components
-        address_line_1 = search_request.STREET1 or ""
+        # Extract address components and combine street addresses
+        street1 = search_request.STREET1 or ""
+        street2 = search_request.STREET2 or ""
+        
+        # Combine street addresses for more complete address matching
+        if street1 and street2:
+            address_line_1 = f"{street1}, {street2}"
+        elif street1:
+            address_line_1 = street1
+        elif street2:
+            address_line_1 = street2
+        else:
+            address_line_1 = ""
+            
         city = search_request.CITY or ""
         state = search_request.STATE or ""
         zip_code = search_request.ZIP or ""

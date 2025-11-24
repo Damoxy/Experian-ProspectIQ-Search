@@ -122,6 +122,22 @@ class Donor(KCBase):
     RESaluationAddress2 = Column(String(100))
     FundDescription = Column(String(100))
 
+
+class Transaction(KCBase):
+    """Transaction model for KnowledgeCore database"""
+    __tablename__ = "Transaction"
+    __table_args__ = {'schema': 'dbo'}
+    
+    # Composite primary key using the fields we know exist
+    # This allows multiple transactions per constituent
+    Constituent_ID = Column(String(100), ForeignKey('dbo.Donor.ConstituentId'), primary_key=True, index=True)
+    Gift_Date = Column(DateTime, primary_key=True)
+    Gift_Amount = Column(String(50), primary_key=True)  # Include amount in PK to handle multiple gifts on same date
+    
+    # Establish relationship to Donor table
+    donor = relationship("Donor", foreign_keys=[Constituent_ID])
+
+
 def get_experian_db():
     """Dependency to get Experian database session"""
     db = ExperianSessionLocal()

@@ -120,3 +120,17 @@ export const validatePhoneNumbers = async (formData: SearchFormData): Promise<an
     throw new Error('An unexpected error occurred during phone validation');
   }
 };
+
+// Email Validation API
+export const validateEmailAddress = async (formData: SearchFormData): Promise<any> => {
+  try {
+    const response = await apiClient.post('/validate-email', formData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Email validation failed';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred during email validation');
+  }
+};
