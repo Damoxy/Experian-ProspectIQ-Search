@@ -1178,6 +1178,20 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     'News'
   ];
 
+  // Define color themes for each tab
+  const tabColors = {
+    'Profile': { primary: '#1976d2', light: '#e3f2fd', chip: '#1565c0' },
+    'Consumer Behavior': { primary: '#388e3c', light: '#e8f5e8', chip: '#2e7d32' },
+    'Financial': { primary: '#f57c00', light: '#fff3e0', chip: '#ef6c00' },
+    'Political Interests': { primary: '#7b1fa2', light: '#f3e5f5', chip: '#6a1b9a' },
+    'Charitable Activities': { primary: '#d32f2f', light: '#ffebee', chip: '#c62828' },
+    'Contact Validation': { primary: '#00796b', light: '#e0f2f1', chip: '#00695c' },
+    'Philanthropy': { primary: '#5d4037', light: '#efebe9', chip: '#4e342e' },
+    'Affiliations': { primary: '#303f9f', light: '#e8eaf6', chip: '#283593' },
+    'Social Media': { primary: '#e91e63', light: '#fce4ec', chip: '#c2185b' },
+    'News': { primary: '#455a64', light: '#eceff1', chip: '#37474f' }
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       {/* Search Field */}
@@ -1220,35 +1234,48 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           sx={{
             '& .MuiTabs-indicator': {
               height: 3,
+              backgroundColor: tabColors[tabLabels[value] as keyof typeof tabColors]?.primary || '#1976d2',
             },
             '& .MuiTab-root': {
               minHeight: 64,
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '0.875rem',
-              '&.Mui-selected': {
-                color: 'primary.main',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
               },
             },
           }}
         >
           {tabLabels.map((label, index) => {
             const count = categorizedData[label]?.length || 0;
+            const colors = tabColors[label as keyof typeof tabColors];
+            const isSelected = value === index;
+            
             return (
               <Tab
                 key={label}
                 label={
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'inherit' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 'inherit',
+                        color: isSelected ? colors.primary : 'inherit'
+                      }}
+                    >
                       {label}
                     </Typography>
                     <Chip 
                       label={count} 
                       size="small" 
-                      color={count > 0 ? "primary" : "default"}
                       sx={{ 
                         height: 20, 
                         fontSize: '0.75rem',
+                        backgroundColor: count > 0 ? (isSelected ? colors.primary : colors.light) : '#f5f5f5',
+                        color: count > 0 ? (isSelected ? 'white' : colors.chip) : '#9e9e9e',
+                        fontWeight: 600,
                         '& .MuiChip-label': { px: 1 }
                       }}
                     />
@@ -1256,6 +1283,14 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                 }
                 id={`results-tab-${index}`}
                 aria-controls={`results-tabpanel-${index}`}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: colors.light,
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: colors.primary,
+                    }
+                  }
+                }}
               />
             );
           })}
