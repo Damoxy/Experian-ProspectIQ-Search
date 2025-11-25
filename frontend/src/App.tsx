@@ -560,34 +560,50 @@ const AppContent: React.FC = () => {
                 </Box>
                 
                 {/* Source Badge - positioned absolutely at extreme right */}
-                <Chip
-                  label={
-                    results?.source === 'database' || results?.message?.includes('KnowledgeCore') 
-                      ? 'KC/GT Database' 
-                      : 'Experian API'
-                  }
-                  size="small"
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    backgroundColor: results?.source === 'database' || results?.message?.includes('KnowledgeCore')
-                      ? '#4caf50' // Green for database
-                      : '#ff9800', // Orange for API
-                    color: 'white',
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    animation: 'fadeInRight 0.8s ease-out 0.6s both',
-                    '&:hover': {
-                      transform: 'translateY(-1px)',
+                {results?.source === 'database' || results?.message?.includes('KnowledgeCore') ? (
+                  <Chip
+                    label="KC/GT Database"
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      backgroundColor: '#4caf50', // Green for database
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      height: 24,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      animation: 'fadeInRight 0.8s ease-out 0.6s both',
+                      '&:hover': {
+                        transform: 'translateY(-1px)',
                       boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
                     },
                     transition: 'all 0.3s ease',
                   }}
-                />
+                  />
+                ) : (
+                  <Box
+                    component="img"
+                    src="/Experian-Logo.png"
+                    alt="Experian Logo"
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16,
+                      height: 40,
+                      width: 'auto',
+                      maxWidth: 150,
+                      animation: 'fadeInRight 0.8s ease-out 0.6s both',
+                      '&:hover': {
+                        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+                        transform: 'scale(1.02)',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
+                )}
               </Box>
             )}
 
