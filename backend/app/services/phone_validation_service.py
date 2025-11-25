@@ -176,11 +176,8 @@ class PhoneValidationService:
             HTTPException: If API call fails or returns error
         """
         try:
-            self.logger.info("Starting phone validation request")
-            
             # Build the API payload
             payload = self._build_payload(search_request)
-            self.logger.info(f"Phone validation payload: {json.dumps(payload, indent=2)}")
             
             # Prepare headers
             headers = {
@@ -190,10 +187,6 @@ class PhoneValidationService:
                 "Content-Type": "application/json"
             }
             
-            # Log headers (without showing the full auth token for security)
-            safe_headers = {k: (v if k != "Auth-Token" else f"{v[:8]}...{v[-4:]}") for k, v in headers.items()}
-            self.logger.info(f"Phone validation headers: {json.dumps(safe_headers, indent=2)}")
-            
             # Make API call
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
@@ -202,17 +195,13 @@ class PhoneValidationService:
                     json=payload
                 )
                 
-                self.logger.info(f"Phone validation API response status: {response.status_code}")
-                
                 if response.status_code != 200:
                     # Log response details for debugging
                     try:
                         error_response = response.json()
-                        self.logger.error(f"Phone validation API error response: {json.dumps(error_response, indent=2)}")
                         error_detail = error_response.get('message', f'API returned status {response.status_code}')
                     except:
                         error_detail = response.text or f'API returned status {response.status_code}'
-                        self.logger.error(f"Phone validation API error text: {error_detail}")
                     
                     error_msg = f"Phone validation API failed with status {response.status_code}: {error_detail}"
                     self.logger.error(error_msg)
@@ -221,7 +210,6 @@ class PhoneValidationService:
                 # Parse response
                 try:
                     api_response = response.json()
-                    self.logger.debug(f"Phone validation API response: {json.dumps(api_response, indent=2)}")
                 except json.JSONDecodeError as e:
                     error_msg = f"Failed to parse phone validation API response: {str(e)}"
                     log_error(self.logger, error_msg, e)
@@ -229,7 +217,6 @@ class PhoneValidationService:
                 
                 # Format and return response
                 formatted_response = self._format_phone_validation_response(api_response)
-                self.logger.info("Phone validation completed successfully")
                 
                 return formatted_response
                 

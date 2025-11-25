@@ -134,3 +134,20 @@ export const validateEmailAddress = async (formData: SearchFormData): Promise<an
     throw new Error('An unexpected error occurred during email validation');
   }
 };
+
+// AI Insights API
+export const generateAIInsights = async (category: string, profileData: any): Promise<any> => {
+  try {
+    const response = await apiClient.post('/ai-insights', {
+      category: category,
+      profile_data: profileData
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'AI insights generation failed';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred during AI insights generation');
+  }
+};

@@ -13,6 +13,7 @@ from services.experian_service import ExperianService
 from services.knowledgecore_service import KnowledgeCoreService
 from services.phone_validation_service import PhoneValidationService
 from services.email_validation_service import EmailValidationService
+from services.ai_insights_service import AIInsightsService
 from core.logging_config import setup_logging, log_api_request, log_api_response
 from config import DEBUG
 from auth import get_current_user_id
@@ -26,6 +27,7 @@ experian_service = ExperianService()
 kc_service = KnowledgeCoreService()
 phone_validation_service = PhoneValidationService()
 email_validation_service = EmailValidationService()
+ai_insights_service = AIInsightsService()
 security = HTTPBearer()
 
 @router.post("/search")
@@ -228,6 +230,57 @@ async def validate_email_address(
         raise HTTPException(
             status_code=500,
             detail=f"Email validation failed: {str(e)}"
+        )
+
+@router.post("/ai-insights")
+async def generate_ai_insights(
+    request_data: dict,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Generate AI insights for donor profile data
+    (Protected endpoint - requires authentication)
+    """
+    start_time = time.time()
+    
+    # Validate authentication token
+    user_id = get_current_user_id(credentials.credentials)
+    logger.info(f"AI insights request from user ID: {user_id}")
+    
+    # Extract category and profile data from request
+    category = request_data.get("category", "Profile")
+    profile_data = request_data.get("profile_data", {})
+    
+    if not profile_data:
+        raise HTTPException(
+            status_code=400,
+            detail="Profile data is required for AI insights generation"
+        )
+    
+    # Log incoming request (without full profile data for privacy)
+    log_api_request(logger, "/ai-insights", {"category": category, "has_profile_data": bool(profile_data)})
+    
+    try:
+        logger.info(f"Generating AI insights for category: {category}")
+        
+        # Generate AI insights
+        result = await ai_insights_service.generate_insights(category, profile_data)
+        
+        # Log response and timing
+        total_time = time.time() - start_time
+        log_api_response(logger, "/ai-insights", {"status": "success", "category": category}, total_time)
+        logger.info(f"AI insights generated successfully in {total_time:.2f} seconds")
+        
+        return result
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions without additional logging (already logged in service)
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in AI insights endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI insights generation failed: {str(e)}"
         )
 
 @router.get("/health")

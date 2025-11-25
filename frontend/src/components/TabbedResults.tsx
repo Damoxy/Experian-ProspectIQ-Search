@@ -27,7 +27,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
@@ -81,14 +81,54 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const handleAiInsights = async (category: string) => {
     setAiInsightsLoading(prev => ({ ...prev, [category]: true }));
     
-    // Simulate API call delay
-    setTimeout(() => {
+    try {
+      // Create profile data from search criteria and results
+      const profileData: any = {};
+      
+      // Add search criteria (name, city, state) - this is what we need for AI prompts
+      if (searchCriteria) {
+        profileData.FIRST_NAME = searchCriteria.FIRST_NAME;
+        profileData.LAST_NAME = searchCriteria.LAST_NAME;
+        profileData.CITY = searchCriteria.CITY;
+        profileData.STATE = searchCriteria.STATE;
+      }
+      
+      // Add all available data from the search results
+      if (data) {
+        Object.keys(data).forEach(key => {
+          profileData[key] = data[key];
+        });
+      }
+      
+      // Add metadata
+      profileData.source = 'Knowledge Core IQ Search';
+      profileData.search_timestamp = new Date().toISOString();
+      
+      console.log(`Generating AI insights for ${category}:`, profileData);
+      
+      // Call the AI insights API
+      const response = await generateAIInsights(category, profileData);
+      
+      if (response.ai_insights && response.ai_insights.insights) {
+        setAiInsightsResults(prev => ({ 
+          ...prev, 
+          [category]: response.ai_insights.insights
+        }));
+      } else {
+        setAiInsightsResults(prev => ({ 
+          ...prev, 
+          [category]: "AI insights could not be generated at this time. Please try again later."
+        }));
+      }
+    } catch (error) {
+      console.error('AI insights generation failed:', error);
       setAiInsightsResults(prev => ({ 
         ...prev, 
-        [category]: "This feature is still in progress. AI insights will be available soon!" 
+        [category]: `AI insights temporarily unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`
       }));
+    } finally {
       setAiInsightsLoading(prev => ({ ...prev, [category]: false }));
-    }, 2000);
+    }
   };
 
   const handlePhoneValidation = async () => {
@@ -788,15 +828,54 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         </Box>
         
         {result && (
-          <Alert 
-            severity="info" 
+          <Paper 
+            elevation={1}
             sx={{ 
-              backgroundColor: '#e3f2fd',
-              border: '1px solid #bbdefb'
+              p: 3,
+              backgroundColor: '#f8fffe',
+              border: '1px solid #e0f2f1',
+              borderRadius: 2
             }}
           >
-            {result}
-          </Alert>
+            <Typography 
+              variant="body1" 
+              component="div"
+              sx={{ 
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.6,
+                '& p': { mb: 1 },
+                fontFamily: 'inherit'
+              }}
+            >
+              {result.split('\n').map((line, index) => {
+                // Handle bullet points
+                if (line.trim().startsWith('•')) {
+                  return (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography component="span" sx={{ mr: 1, fontWeight: 'bold', color: '#1976d2' }}>
+                        •
+                      </Typography>
+                      <Typography component="span" sx={{ fontWeight: 500 }}>
+                        {line.trim().substring(1).trim()}
+                      </Typography>
+                    </Box>
+                  );
+                }
+                // Handle regular paragraphs
+                else if (line.trim()) {
+                  return (
+                    <Typography key={index} paragraph sx={{ mb: 1.5, textAlign: 'justify' }}>
+                      {line.trim()}
+                    </Typography>
+                  );
+                }
+                // Handle empty lines
+                else {
+                  return <Box key={index} sx={{ height: '8px' }} />;
+                }
+              })}
+            </Typography>
+          </Paper>
         )}
       </Box>
     );
@@ -804,7 +883,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
 
   // Create the results with expandable sub-sections
   const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
-    const hasAiInsights = ['Political Interests', 'Charitable Activities', 'Profile'].includes(category);
+    const hasAiInsights = ['Profile', 'Political Interests', 'Charitable Activities', 'Social Media', 'News'].includes(category);
     
     if (fields.length === 0) {
       return (

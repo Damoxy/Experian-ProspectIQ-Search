@@ -47,6 +47,15 @@ def create_app() -> FastAPI:
     logger.info(f"Server will run on {HOST}:{PORT}")
     logger.info(f"CORS origins: {ALLOWED_ORIGINS}")
     
+    # Debug environment variables for AI service
+    from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
+    if OPENROUTER_API_KEY:
+        key_preview = f"{OPENROUTER_API_KEY[:10]}..." if len(OPENROUTER_API_KEY) > 10 else "KEY_TOO_SHORT"
+        logger.info(f"OpenRouter API key status: Available ({key_preview})")
+        logger.info(f"OpenRouter model: {OPENROUTER_MODEL}")
+    else:
+        logger.error("OpenRouter API key not found in environment variables")
+    
     return app
 
 

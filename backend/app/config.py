@@ -5,8 +5,9 @@ Configuration settings for the Experian API integration
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the backend directory (parent of app)
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+load_dotenv(env_path)
 
 # Experian API Configuration
 EXPERIAN_API_URL = os.getenv("EXPERIAN_API_URL")
@@ -33,5 +34,17 @@ env_origins = os.getenv("ALLOWED_ORIGINS")
 if env_origins:
     additional_origins = env_origins.split(",")
     ALLOWED_ORIGINS.extend([origin.strip() for origin in additional_origins])
+
+# AI Configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
+
+# Debug environment loading
+if DEBUG:
+    print(f"Environment file path: {env_path}")
+    print(f"Environment file exists: {os.path.exists(env_path)}")
+    print(f"OPENROUTER_API_KEY loaded: {'Yes' if OPENROUTER_API_KEY else 'No'}")
+    if OPENROUTER_API_KEY:
+        print(f"API Key preview: {OPENROUTER_API_KEY[:10]}...")
 
 # Configuration loaded - debug prints removed in favor of proper logging system
