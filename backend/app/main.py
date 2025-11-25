@@ -15,6 +15,7 @@ from config import ALLOWED_ORIGINS, HOST, PORT, DEBUG
 from api.routes import router
 from api.auth_routes import router as auth_router
 from core.logging_config import setup_logging
+from services.cache_cleanup import start_cache_cleanup_scheduler, stop_cache_cleanup_scheduler
 
 # Initialize logging
 logger = setup_logging(DEBUG)
@@ -41,11 +42,41 @@ def create_app() -> FastAPI:
     app.include_router(router)
     app.include_router(auth_router)
     
+    # Register startup event - start cache cleanup scheduler
+    @app.on_event("startup")
+    async def startup_event():
+        logger.info("Application startup event triggered")
+        logger.info("FastAPI application starting up")
+        logger.info(f"Debug mode: {DEBUG}")
+        logger.info(f"Server will run on {HOST}:{PORT}")
+        logger.info(f"CORS origins: {ALLOWED_ORIGINS}")
+        
+        # Debug environment variables for AI service
+        from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
+        if OPENROUTER_API_KEY:
+            key_preview = f"{OPENROUTER_API_KEY[:10]}..." if len(OPENROUTER_API_KEY) > 10 else "KEY_TOO_SHORT"
+            logger.info(f"OpenRouter API key status: Available ({key_preview})")
+            logger.info(f"OpenRouter model: {OPENROUTER_MODEL}")
+        else:
+            logger.error("OpenRouter API key not found in environment variables")
+        
+        # Start cache cleanup scheduler
+        try:
+            start_cache_cleanup_scheduler()
+        except Exception as e:
+            logger.error(f"Failed to start cache cleanup scheduler: {str(e)}")
+    
+    # Register shutdown event - stop cache cleanup scheduler
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        logger.info("Application shutdown event triggered")
+        try:
+            stop_cache_cleanup_scheduler()
+        except Exception as e:
+            logger.error(f"Error during cache cleanup scheduler shutdown: {str(e)}")
+    
     # Log application startup
-    logger.info("FastAPI application starting up")
-    logger.info(f"Debug mode: {DEBUG}")
-    logger.info(f"Server will run on {HOST}:{PORT}")
-    logger.info(f"CORS origins: {ALLOWED_ORIGINS}")
+    logger.info("FastAPI application created successfully")
     
     # Debug environment variables for AI service
     from config import OPENROUTER_API_KEY, OPENROUTER_MODEL

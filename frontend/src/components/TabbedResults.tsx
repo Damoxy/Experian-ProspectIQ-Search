@@ -1272,6 +1272,55 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
 
   return (
     <Box sx={{ width: '100%' }}>
+      {/* Cache Metadata Banner - shown when results are from cache */}
+      {data.cache_metadata && (
+        <Paper
+          elevation={0}
+          sx={{
+            backgroundColor: '#e3f2fd',
+            borderLeft: '4px solid #1976d2',
+            borderRadius: '4px',
+            p: 2,
+            mb: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#1565c0', fontWeight: 600 }}
+            >
+              📦 Cached Results
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#424242' }}>
+              Last retrieved {data.cache_metadata.cache_age_days} day{data.cache_metadata.cache_age_days !== 1 ? 's' : ''} ago
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#666', ml: 1 }}>
+              •
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#666', ml: 1 }}>
+              Expires: {new Date(data.cache_metadata.expires_at).toLocaleDateString()}
+            </Typography>
+            {data.cache_metadata.api_calls_count > 1 && (
+              <>
+                <Typography variant="caption" sx={{ color: '#666' }}>
+                  •
+                </Typography>
+                <Chip
+                  label={`Used ${data.cache_metadata.api_calls_count} times`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ height: 24, fontSize: '0.7rem' }}
+                />
+              </>
+            )}
+          </Box>
+        </Paper>
+      )}
+      
       {/* Search Field */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <TextField
