@@ -71,18 +71,11 @@ class CacheService:
             cache_entry.api_calls_count += 1
             session.commit()
             
-            # Build response from cached data
+            # Build response from cached data (metadata tracked internally, not sent to users)
             cached_response = {
                 "search_response": json.loads(cache_entry.search_response) if isinstance(cache_entry.search_response, str) else cache_entry.search_response,
                 "phone_validation": json.loads(cache_entry.phone_validation) if cache_entry.phone_validation and isinstance(cache_entry.phone_validation, str) else cache_entry.phone_validation,
-                "email_validation": json.loads(cache_entry.email_validation) if cache_entry.email_validation and isinstance(cache_entry.email_validation, str) else cache_entry.email_validation,
-                "cache_metadata": {
-                    "source": "cache",
-                    "cached_at": cache_entry.created_at.isoformat(),
-                    "expires_at": cache_entry.expires_at.isoformat(),
-                    "cache_age_days": (datetime.utcnow() - cache_entry.created_at).days,
-                    "api_calls_count": cache_entry.api_calls_count
-                }
+                "email_validation": json.loads(cache_entry.email_validation) if cache_entry.email_validation and isinstance(cache_entry.email_validation, str) else cache_entry.email_validation
             }
             
             return cached_response
