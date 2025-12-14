@@ -5,7 +5,7 @@ Authentication API routes for login, signup, and user management
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from database import get_experian_db
 from models import UserCreate, UserLogin, Token, UserResponse, ResetPasswordRequest
@@ -76,6 +76,10 @@ async def login(user: UserLogin, db: Session = Depends(get_experian_db)):
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Authentication failed"
                 )
+        
+        # Update last_login timestamp
+        db_user.last_login = datetime.utcnow()
+        db.commit()
         
         # Create access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
