@@ -2,13 +2,16 @@
 Database configuration and models using SQLAlchemy
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy.dialects.mssql import JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from urllib.parse import quote_plus
+import hashlib
+import json
 
 # Build database URL from individual components 
 DB_SERVER = os.getenv("DB_SERVER")
@@ -77,6 +80,71 @@ class PasswordResetToken(Base):
     
     # Relationship
     user = relationship("User")
+
+class ExperianAPICache(Base):
+    """Cache for Experian API responses with 90-day TTL"""
+    __tablename__ = os.getenv("CACHE_TABLE_NAME")
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Search criteria - normalized for consistency (based on user input: name + address)
+    search_hash = Column(String(64), unique=True, index=True, nullable=False)  # SHA256 hash of normalized criteria
+    first_name = Column(String(100), index=True)
+    last_name = Column(String(100), index=True)
+    address = Column(String(200), index=True)
+    city = Column(String(100), index=True)
+    state = Column(String(50), index=True)
+    zip_code = Column(String(20), index=True)
+    
+    # API responses stored as JSON
+    # search_response: All tabs from main search (Consumer Behavior, Profile, Financial, Political, 
+    #                  Charitable, Contact Validation, Philanthropy, Affiliations, Social Media, News)
+    search_response = Column(JSON, nullable=False)
+    # phone_validation: Response from separate /validate-phone endpoint
+    phone_validation = Column(JSON, nullable=True)
+    # email_validation: Response from separate /validate-email endpoint
+    email_validation = Column(JSON, nullable=True)
+    
+    # Tracking and cleanup
+    api_calls_count = Column(Integer, default=1)  # Number of times this query was made
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)  # 90 days from creation
+    last_accessed_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Source tracking
+    api_source = Column(String(50), default="experian")  # "experian", "givingtrend", etc.
+    
+    # Cache statistics
+    is_partial = Column(Boolean, default=False)  # True if only partial data available
+    error_message = Column(String(500), nullable=True)  # If API returned error
+
+
+def generate_search_hash(first_name: str = None, last_name: str = None, address: str = None, 
+                         city: str = None, state: str = None, zip_code: str = None) -> str:
+    """
+    Generate a deterministic SHA256 hash from normalized search criteria (name + address).
+    Phone and email are NOT included in hash since users don't input those.
+    Normalizes input to handle different cases/spacing and create consistent lookups.
+    """
+    # Normalize inputs - strip whitespace and convert to lowercase
+    normalized = {
+        'first_name': (first_name or '').strip().lower(),
+        'last_name': (last_name or '').strip().lower(),
+        'address': (address or '').strip().lower(),
+        'city': (city or '').strip().lower(),
+        'state': (state or '').strip().lower(),
+        'zip_code': (zip_code or '').strip().lower(),
+    }
+    
+    # Create a consistent JSON string for hashing
+    hash_input = json.dumps(normalized, sort_keys=True)
+    return hashlib.sha256(hash_input.encode()).hexdigest()
+
+
+def get_cache_expiry_date() -> datetime:
+    """Get expiry date for cache (90 days from now)"""
+    return datetime.utcnow() + timedelta(days=90)
 
 # Create separate Base for KnowledgeCore database
 KCBase = declarative_base()
