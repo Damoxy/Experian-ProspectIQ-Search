@@ -113,12 +113,6 @@ async def search_with_database_fallback(
             if cache_result.get('email_validation'):
                 result['email_validation'] = cache_result['email_validation']
             
-            # Add cache metadata and source indicators
-            result['cache_metadata'] = cache_result.get('cache_metadata', {})
-            result['fallback_source'] = "cache"
-            result['database_checked'] = True
-            result['database_records_found'] = 0
-            
             # Log successful completion
             total_time = time.time() - start_time
             response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
