@@ -83,7 +83,7 @@ class PasswordResetToken(Base):
 
 class ExperianAPICache(Base):
     """Cache for Experian API responses with 90-day TTL"""
-    __tablename__ = os.getenv("CACHE_TABLE_NAME")
+    __tablename__ = "experian_api_cache"
     
     # Primary key
     id = Column(Integer, primary_key=True, index=True)
