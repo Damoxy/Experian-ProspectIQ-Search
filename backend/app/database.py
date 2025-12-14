@@ -41,9 +41,10 @@ encoded_password = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
 EXPERIAN_DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_EXP_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
 GIVINGTREND_DATABASE_URL = f"mssql+pyodbc://{DB_USERNAME}:{encoded_password}@{DB_SERVER}/{KC_GT_DB_DATABASE}?driver={quote_plus(DB_DRIVER)}"
 
-# Create engines for both databases
-experian_engine = create_engine(EXPERIAN_DATABASE_URL)
-givingtrend_engine = create_engine(GIVINGTREND_DATABASE_URL)
+# Create engines for both databases with connection pooling
+# pool_recycle=3600 closes idle connections every hour to prevent stale connections causing 0x68 errors
+experian_engine = create_engine(EXPERIAN_DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
+givingtrend_engine = create_engine(GIVINGTREND_DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
 
 ExperianSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=experian_engine)
 GivingTrendSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=givingtrend_engine)
@@ -59,6 +60,7 @@ class User(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
