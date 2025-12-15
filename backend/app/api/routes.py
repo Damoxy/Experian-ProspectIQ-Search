@@ -15,6 +15,7 @@ from services.phone_validation_service import PhoneValidationService
 from services.email_validation_service import EmailValidationService
 from services.ai_insights_service import AIInsightsService
 from services.cache_service import CacheService
+from services.search_history_service import SearchHistoryService
 from core.logging_config import setup_logging, log_api_request, log_api_response
 from config import DEBUG
 from auth import get_current_user_id
@@ -87,6 +88,12 @@ async def search_with_database_fallback(
             log_api_response(logger, "/search", 200, len(response_json))
             logger.info(f"Database search completed successfully in {total_time:.2f} seconds")
             
+            # Add to search history (async, don't block response)
+            try:
+                SearchHistoryService.add_search(experian_db, user_id, search_request)
+            except Exception as e:
+                logger.warning(f"Failed to add search to history: {str(e)}")
+            
             return result
         
         # Step 2: No records found in database - fall back to Experian API
@@ -118,6 +125,12 @@ async def search_with_database_fallback(
             response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
             log_api_response(logger, "/search", 200, len(response_json))
             logger.info(f"Cache hit completed in {total_time:.2f} seconds")
+            
+            # Track search history
+            try:
+                SearchHistoryService.add_search(experian_db, user_id, search_request)
+            except Exception as e:
+                logger.warning(f"Failed to add search to history: {str(e)}")
             
             return result
         
@@ -181,6 +194,12 @@ async def search_with_database_fallback(
         response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
         log_api_response(logger, "/search", 200, len(response_json))
         logger.info(f"Fallback search completed successfully in {total_time:.2f} seconds")
+        
+        # Track search history
+        try:
+            SearchHistoryService.add_search(experian_db, user_id, search_request)
+        except Exception as e:
+            logger.warning(f"Failed to add search to history: {str(e)}")
         
         return result
         

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -20,7 +20,7 @@ import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
 import AnimatedBubbles from './components/AnimatedBubbles';
-import { searchKnowledgeCore, validatePhoneNumbers } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -82,7 +82,28 @@ const AppContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [searchCriteria, setSearchCriteria] = useState<SearchFormData | null>(null);
+  const [recentSearches, setRecentSearches] = useState<any[]>([]);
+  const [showRecentSearchesPage, setShowRecentSearchesPage] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Load recent searches on mount and after successful search
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      loadRecentSearches();
+    }
+  }, [isAuthenticated, isLoading]);
+
+  const loadRecentSearches = async () => {
+    try {
+      const response = await getRecentSearches();
+      if (response && response.searches) {
+        setRecentSearches(response.searches);
+      }
+    } catch (err) {
+      console.warn('Failed to load recent searches:', err instanceof Error ? err.message : 'Unknown error');
+      // Don't fail the app if recent searches fail to load
+    }
+  };
 
   const handleSearch = async (formData: SearchFormData) => {
     setLoading(true);
@@ -112,6 +133,8 @@ const AppContent: React.FC = () => {
       }
       
       setResults(data);
+      // Reload recent searches after successful search
+      loadRecentSearches();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setSearchCriteria(null); // Clear criteria on error
@@ -145,7 +168,100 @@ const AppContent: React.FC = () => {
       <Header />
       <Container maxWidth={false} sx={{ pt: 12, pb: 4, px: 3, maxWidth: '100vw', position: 'relative' }}>
       
-      {!results ? (
+      {showRecentSearchesPage ? (
+        // Recent Searches Full Page
+        <Box sx={{ maxWidth: '900px', mx: 'auto' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: '#2E3B55' }}>
+              Recent Searches
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#999' }}>
+              ({recentSearches.length} total)
+            </Typography>
+          </Box>
+          
+          <Paper elevation={3} sx={{ p: 3 }}>
+            {recentSearches && recentSearches.length > 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {recentSearches.map((search) => (
+                  <Paper
+                    key={search.id}
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      background: 'rgba(46, 59, 85, 0.03)',
+                      border: '1px solid rgba(46, 59, 85, 0.1)',
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(46, 59, 85, 0.08)',
+                        border: '1px solid rgba(46, 59, 85, 0.2)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }
+                    }}
+                    onClick={() => {
+                      const formData: SearchFormData = {
+                        FIRST_NAME: search.first_name || '',
+                        LAST_NAME: search.last_name || '',
+                        STREET1: search.street || '',
+                        STREET2: '',
+                        CITY: search.city || '',
+                        STATE: search.state || '',
+                        ZIP: search.zip_code || '',
+                      };
+                      setShowRecentSearchesPage(false);
+                      handleSearch(formData);
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#2E3B55', mb: 1 }}>
+                          {search.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#5A6C7D', mb: 0.5 }}>
+                          {search.address}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#999' }}>
+                          Searched {search.date}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'right', ml: 2 }}>
+                        <Chip 
+                          label="Search Again" 
+                          color="primary" 
+                          variant="outlined"
+                          size="small"
+                        />
+                      </Box>
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', py: 4 }}>
+                No recent searches yet
+              </Typography>
+            )}
+          </Paper>
+          
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Typography 
+              variant="body2"
+              sx={{ 
+                color: '#3498db', 
+                cursor: 'pointer', 
+                fontWeight: 600,
+                '&:hover': { textDecoration: 'underline' }
+              }}
+              onClick={() => setShowRecentSearchesPage(false)}
+            >
+              ← Back to Search
+            </Typography>
+          </Box>
+        </Box>
+      ) : !results ? (
         // Centered search layout with enhanced modern design
         <Box sx={{ 
           position: 'relative',
@@ -191,6 +307,52 @@ const AppContent: React.FC = () => {
                   {error}
                 </Alert>
               )}
+              
+              {/* Recent Searches Section */}
+              {recentSearches && recentSearches.length > 0 && (
+                <Box sx={{ mt: 4 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#5A6C7D', fontWeight: 600, mb: 2 }}>
+                    Recent Searches
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {recentSearches.slice(0, 5).map((search) => (
+                      <Paper
+                        key={search.id}
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          background: 'rgba(46, 59, 85, 0.05)',
+                          border: '1px solid rgba(46, 59, 85, 0.1)',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            background: 'rgba(46, 59, 85, 0.1)',
+                            border: '1px solid rgba(46, 59, 85, 0.2)',
+                          }
+                        }}
+                        onClick={() => {
+                          // Populate form with recent search data
+                          const formData: SearchFormData = {
+                            FIRST_NAME: search.first_name || '',
+                            LAST_NAME: search.last_name || '',
+                            STREET1: search.street || '',
+                            STREET2: '',
+                            CITY: search.city || '',
+                            STATE: search.state || '',
+                            ZIP: search.zip_code || '',
+                          };
+                          handleSearch(formData);
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#2E3B55' }}>
+                          {search.name}
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Paper>
           </Box>
         </Box>
@@ -219,46 +381,71 @@ const AppContent: React.FC = () => {
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1rem' }}>
                   Recent Searches
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {[
-                    { name: 'John Smith', address: '123 Main St, Chicago, IL', date: '2h ago' },
-                    { name: 'Sarah Johnson', address: '456 Oak Ave, New York, NY', date: '1d ago' },
-                    { name: 'Michael Brown', address: '789 Pine Rd, Los Angeles, CA', date: '2d ago' },
-                    { name: 'Emily Davis', address: '321 Elm St, Miami, FL', date: '3d ago' },
-                    { name: 'David Wilson', address: '654 Maple Dr, Seattle, WA', date: '1w ago' }
-                  ].map((search, index) => (
-                    <Box 
-                      key={index}
-                      sx={{ 
-                        p: 1.5, 
-                        borderRadius: 1.5, 
-                        backgroundColor: 'rgba(52, 152, 219, 0.04)',
-                        border: '1px solid rgba(52, 152, 219, 0.08)',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(52, 152, 219, 0.08)',
-                          borderColor: 'rgba(52, 152, 219, 0.15)',
-                          transform: 'translateY(-1px)'
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#2C3E50', mb: 0.3, fontSize: '0.85rem' }}>
-                            {search.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#566573', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {search.address}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" sx={{ color: '#7B8794', fontSize: '0.7rem', ml: 1, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {recentSearches && recentSearches.length > 0 ? (
+                    recentSearches.slice(0, 5).map((search) => (
+                      <Box 
+                        key={search.id}
+                        sx={{ 
+                          p: 1.5, 
+                          borderRadius: 1.5, 
+                          backgroundColor: 'rgba(52, 152, 219, 0.04)',
+                          border: '1px solid rgba(52, 152, 219, 0.08)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            backgroundColor: 'rgba(52, 152, 219, 0.08)',
+                            borderColor: 'rgba(52, 152, 219, 0.15)',
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                        onClick={() => {
+                          const formData: SearchFormData = {
+                            FIRST_NAME: search.first_name || '',
+                            LAST_NAME: search.last_name || '',
+                            STREET1: search.street || '',
+                            STREET2: '',
+                            CITY: search.city || '',
+                            STATE: search.state || '',
+                            ZIP: search.zip_code || '',
+                          };
+                          handleSearch(formData);
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#2C3E50', fontSize: '0.85rem', mb: 0.3 }}>
+                          {search.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#566573', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mb: 0.3 }}>
+                          {search.address}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#7B8794', fontSize: '0.7rem' }}>
                           {search.date}
                         </Typography>
                       </Box>
-                    </Box>
-                  ))}
+                    ))
+                  ) : (
+                    <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                      No recent searches
+                    </Typography>
+                  )}
                 </Box>
+                {recentSearches && recentSearches.length > 0 && (
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#3498db', 
+                      cursor: 'pointer', 
+                      mt: 1.5, 
+                      display: 'block',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                    onClick={() => setShowRecentSearchesPage(true)}
+                  >
+                    View all ({recentSearches.length})
+                  </Typography>
+                )}
               </Box>
               
               {error && (

@@ -147,6 +147,9 @@ class AIInsightsService:
             }
             
             # Make API call
+            self.logger.debug(f"Making request to OpenRouter API with model: {self.model}")
+            self.logger.debug(f"API Key preview: {self.api_key[:20]}...")
+            
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     self.api_url,
@@ -154,10 +157,13 @@ class AIInsightsService:
                     json=payload
                 )
                 
+                self.logger.debug(f"OpenRouter API response status: {response.status_code}")
+                
                 if response.status_code != 200:
                     error_detail = f"OpenRouter API returned status {response.status_code}"
                     try:
                         error_response = response.json()
+                        self.logger.debug(f"Error response body: {error_response}")
                         error_detail = error_response.get('error', {}).get('message', error_detail)
                     except:
                         error_detail = response.text or error_detail

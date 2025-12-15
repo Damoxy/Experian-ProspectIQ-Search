@@ -151,3 +151,30 @@ export const generateAIInsights = async (category: string, profileData: any): Pr
     throw new Error('An unexpected error occurred during AI insights generation');
   }
 };
+
+// Recent Searches API
+export const getRecentSearches = async (): Promise<any> => {
+  try {
+    const response = await apiClient.get('/recent/searches');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Failed to fetch recent searches';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred while fetching recent searches');
+  }
+};
+
+export const clearRecentSearches = async (): Promise<any> => {
+  try {
+    const response = await apiClient.delete('/recent/searches/clear');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Failed to clear recent searches';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred while clearing recent searches');
+  }
+};
