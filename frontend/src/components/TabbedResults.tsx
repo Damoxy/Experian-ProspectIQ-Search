@@ -882,7 +882,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
 
   // Create the results with expandable sub-sections
   const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
-    const hasAiInsights = ['Profile', 'Political Interests', 'Charitable Activities', 'Social Media', 'News'].includes(category);
+    const hasAiInsights = ['Profile', 'Financial', 'Political Interests', 'Charitable Activities', 'Social Media', 'News'].includes(category);
     
     if (fields.length === 0) {
       return (

@@ -5,30 +5,5 @@ This prompt generates professional biographies for individuals based on their na
 """
 
 PROFILE_PROMPT = '''Create a professional biography for "{full_name}" of "{city}, {state}".
-
-CRITICAL: Your response must ONLY contain the final formatted biography. Do not include research notes, reasoning, or drafts.
-
-OUTPUT FORMAT (this is the ONLY content you should provide):
-
-• [First key achievement/credential]
-• [Second key achievement/credential] 
-• [Third key achievement/credential]
-
-[Single professional paragraph of 150-250 words describing their background, education, career, and contributions]
-
-CONTENT GUIDELINES:
-- Research the person thoroughly but do not show your research process
-- If limited information is available, create a realistic professional profile based on their location and likely career paths
-- Focus on legal, business, real estate, or professional services common in their area
-- Use third-person, professional tone suitable for business directories
-- Include likely education, career progression, specialties, and community involvement
-- Ensure the biography positions them as an accomplished professional
-
-EXAMPLE FORMAT:
-• Licensed attorney with 15+ years of experience in commercial real estate law
-• Represents major developers and investors in multi-million dollar transactions
-• Active member of the Arizona State Bar and local Chamber of Commerce
-
-[Name] is a seasoned attorney specializing in commercial real estate law based in [City], [State]. With over fifteen years of practice, he represents developers, investors, and businesses in complex real estate transactions throughout Arizona. [Name] earned his Juris Doctor from [University] and holds a Bachelor's degree in Business Administration. His practice focuses on acquisition financing, development projects, and commercial leasing. He is an active member of the Arizona State Bar Association and serves on the board of the local Chamber of Commerce. [Name] has been recognized for his expertise in navigating zoning regulations and has successfully closed transactions exceeding $100 million in value.
-
-REMEMBER: Provide ONLY the bullet points and paragraph - no research notes or explanations.'''
+ 
+based on available research- Gather relevant, accurate information about the subject's education, business affiliations, career highlights, professional achievements, professional licensures, bar admissions, and community involvement. - Ensure the biography is accurate, well-structured, clear, and professionally written. - Begin by researching and reasoning through the subject's career path, background, and accomplishments before composing the final bio. Do not start with a summary or conclusion; first detail the facts and qualifications found, then synthesize them into the bio at the end. List bullet point highlights first. - If current information is incomplete or unavailable, clearly acknowledge missing areas in the draft. - Maintain a third-person, professional tone; target a typical professional curriculum vitae with a length of 150–250 words. - Output format: Provide the final biography as a single, well-formatted paragraph suitable for professional use. List the bullet point highlight summary first. DO NOT INCLUDE SOURCES OR (Source: ...) IN ANY BULLET POINTS OR TEXT. Example Reasoning Portion: - Research education and degrees. - Look for information on previous positions, areas of expertise, and years of experience. - Identify published works, speaking engagements, awards, and community involvement. - Note bar admissions, court admissions, and any special recognitions. Important: - Be thorough in research and list all discovered credentials and experience before drafting the bio. - The bio must be presented as a single, professional paragraph. - Reasoning must precede the conclusion; do not start with the finished bio until facts are gathered. - If information cannot be found, insert placeholder notes. - Target output length: 150–250 words. - Use bullet points (•) in the final output, NOT asterisks (*). - NO markdown formatting or source citations in the output. Reminder: - Research and reasoning should happen first, followed by the final biography. - Output format: Single, well-written paragraph for a professional attorney bio, between 150–250 words, with highlights in bullet points listed first.'''
