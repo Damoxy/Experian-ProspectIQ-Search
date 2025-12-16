@@ -98,9 +98,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToSignup, onForgotPasswor
           <Typography variant="h4" component="h1" gutterBottom>
             Sign In
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Welcome back to Knowledge Core IQ Search
-          </Typography>
         </Box>
 
         <form onSubmit={handleSubmit}>

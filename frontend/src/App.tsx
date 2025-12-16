@@ -261,103 +261,8 @@ const AppContent: React.FC = () => {
             </Typography>
           </Box>
         </Box>
-      ) : !results ? (
-        // Centered search layout with enhanced modern design
-        <Box sx={{ 
-          position: 'relative',
-          minHeight: 'calc(100vh - 200px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          pt: 4
-        }}>
-          {/* Modern gradient background with glass morphism */}
-          <Box sx={{ 
-            position: 'absolute', 
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            borderRadius: 3,
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            zIndex: 0
-          }}>
-            <AnimatedBubbles />
-          </Box>
-          
-          {/* Centered Search Panel */}
-          <Box sx={{ 
-            position: 'relative',
-            zIndex: 1,
-            width: '100%',
-            maxWidth: '500px'
-          }}>
-            <Paper elevation={6} sx={{ p: 4, borderRadius: 3 }}>
-              <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', color: '#283E56', fontWeight: 600, mb: 3 }}>
-                Search Information
-              </Typography>
-              <SearchForm onSubmit={handleSearch} />
-              
-              {error && (
-                <Alert severity="error" sx={{ mt: 3 }}>
-                  {error}
-                </Alert>
-              )}
-              
-              {/* Recent Searches Section */}
-              {recentSearches && recentSearches.length > 0 && (
-                <Box sx={{ mt: 4 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#5A6C7D', fontWeight: 600, mb: 2 }}>
-                    Recent Searches
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {recentSearches.slice(0, 5).map((search) => (
-                      <Paper
-                        key={search.id}
-                        elevation={0}
-                        sx={{
-                          p: 2,
-                          background: 'rgba(46, 59, 85, 0.05)',
-                          border: '1px solid rgba(46, 59, 85, 0.1)',
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            background: 'rgba(46, 59, 85, 0.1)',
-                            border: '1px solid rgba(46, 59, 85, 0.2)',
-                          }
-                        }}
-                        onClick={() => {
-                          // Populate form with recent search data
-                          const formData: SearchFormData = {
-                            FIRST_NAME: search.first_name || '',
-                            LAST_NAME: search.last_name || '',
-                            STREET1: search.street || '',
-                            STREET2: '',
-                            CITY: search.city || '',
-                            STATE: search.state || '',
-                            ZIP: search.zip_code || '',
-                          };
-                          handleSearch(formData);
-                        }}
-                      >
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#2E3B55' }}>
-                          {search.name}
-                        </Typography>
-                      </Paper>
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </Paper>
-          </Box>
-        </Box>
       ) : (
-        // Results layout (grid with left search, right results)
+        // Results layout (grid with left search, right results) - ALWAYS SHOWN
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: '400px 1fr',
@@ -806,7 +711,15 @@ const AppContent: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Search Results
               </Typography>
-              <TabbedResults data={results} searchCriteria={searchCriteria || undefined} />
+              {results ? (
+                <TabbedResults data={results} searchCriteria={searchCriteria || undefined} />
+              ) : (
+                <Box sx={{ py: 4, textAlign: 'center', color: '#999' }}>
+                  <Typography variant="body1">
+                    No search results yet. Enter a name and click Search to get started.
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </Box>
         </Box>
