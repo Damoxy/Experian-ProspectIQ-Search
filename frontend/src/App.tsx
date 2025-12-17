@@ -28,6 +28,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
+import AnimatedBubbles from './components/AnimatedBubbles';
 import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
