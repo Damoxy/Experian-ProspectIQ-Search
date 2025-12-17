@@ -114,8 +114,9 @@ class AuthService:
         if not user:
             return False
         
-        # Update password
+        # Update password and updated_at timestamp
         user.hashed_password = get_password_hash(new_password)
+        user.updated_at = datetime.utcnow()
         
         # Mark token as used
         reset_token.used = True
@@ -129,8 +130,9 @@ class AuthService:
         if not user:
             return False
         
-        # Update password
+        # Update password and updated_at timestamp
         user.hashed_password = get_password_hash(new_password)
+        user.updated_at = datetime.utcnow()
         db.commit()
         return True
 

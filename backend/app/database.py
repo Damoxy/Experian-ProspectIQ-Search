@@ -65,7 +65,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     last_login = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=True)
     
     # Relationship to search history
     search_history = relationship("SearchHistory", back_populates="user", cascade="all, delete-orphan")
