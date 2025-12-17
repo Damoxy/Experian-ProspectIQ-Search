@@ -108,6 +108,11 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
       // Call the AI insights API
       const response = await generateAIInsights(category, profileData);
       
+      console.log(`Full AI insights response for ${category}:`, JSON.stringify(response, null, 2));
+      console.log(`Response.ai_insights:`, response.ai_insights);
+      console.log(`Response.ai_insights.insights:`, response.ai_insights?.insights);
+      console.log(`Insights text is empty? ${!response.ai_insights?.insights}`);
+      
       if (response.ai_insights && response.ai_insights.insights) {
         setAiInsightsResults(prev => ({ 
           ...prev, 

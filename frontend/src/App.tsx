@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -11,8 +11,17 @@ import {
   ThemeProvider,
   createTheme,
   Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Button,
+  TablePagination,
 } from '@mui/material';
-import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule } from '@mui/icons-material';
+import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule, ArrowBack, Search as SearchIcon } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
 import Header from './components/Header';
@@ -20,7 +29,7 @@ import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
 import AnimatedBubbles from './components/AnimatedBubbles';
-import { searchKnowledgeCore, validatePhoneNumbers } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -82,7 +91,41 @@ const AppContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<SearchResult | null>(null);
   const [searchCriteria, setSearchCriteria] = useState<SearchFormData | null>(null);
+  const [recentSearches, setRecentSearches] = useState<any[]>([]);
+  const [showRecentSearchesPage, setShowRecentSearchesPage] = useState(false);
+  const [paginationPage, setPaginationPage] = useState(0);
+  const [paginationRowsPerPage, setPaginationRowsPerPage] = useState(10);
   const { isAuthenticated, isLoading } = useAuth();
+
+  // Load recent searches on mount and after successful search
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      loadRecentSearches();
+    }
+  }, [isAuthenticated, isLoading]);
+
+  const loadRecentSearches = async () => {
+    try {
+      const response = await getRecentSearches();
+      if (response && response.searches) {
+        setRecentSearches(response.searches);
+      }
+    } catch (err) {
+      console.warn('Failed to load recent searches:', err instanceof Error ? err.message : 'Unknown error');
+      // Don't fail the app if recent searches fail to load
+    }
+  };
+
+  const clearSearchHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all search history? This cannot be undone.')) {
+      try {
+        await clearRecentSearches();
+        setRecentSearches([]);
+      } catch (err) {
+        console.error('Failed to clear search history:', err);
+      }
+    }
+  };
 
   const handleSearch = async (formData: SearchFormData) => {
     setLoading(true);
@@ -112,6 +155,8 @@ const AppContent: React.FC = () => {
       }
       
       setResults(data);
+      // Reload recent searches after successful search
+      loadRecentSearches();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setSearchCriteria(null); // Clear criteria on error
@@ -145,57 +190,132 @@ const AppContent: React.FC = () => {
       <Header />
       <Container maxWidth={false} sx={{ pt: 12, pb: 4, px: 3, maxWidth: '100vw', position: 'relative' }}>
       
-      {!results ? (
-        // Centered search layout with enhanced modern design
-        <Box sx={{ 
-          position: 'relative',
-          minHeight: 'calc(100vh - 200px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          pt: 4
-        }}>
-          {/* Modern gradient background with glass morphism */}
-          <Box sx={{ 
-            position: 'absolute', 
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            borderRadius: 3,
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            zIndex: 0
-          }}>
-            <AnimatedBubbles />
+      {showRecentSearchesPage ? (
+        // Recent Searches Full Page - CRM Table Format
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f5' }}>
+          <Box sx={{ p: 3, backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton 
+                  onClick={() => setShowRecentSearchesPage(false)}
+                  sx={{ color: '#2E3B55' }}
+                >
+                  <ArrowBack />
+                </IconButton>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: '#2E3B55' }}>
+                    Recent Searches
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={clearSearchHistory}
+              >
+                Clear All
+              </Button>
+            </Box>
           </Box>
-          
-          {/* Centered Search Panel */}
-          <Box sx={{ 
-            position: 'relative',
-            zIndex: 1,
-            width: '100%',
-            maxWidth: '500px'
-          }}>
-            <Paper elevation={6} sx={{ p: 4, borderRadius: 3 }}>
-              <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', color: '#283E56', fontWeight: 600, mb: 3 }}>
-                Search Information
-              </Typography>
-              <SearchForm onSubmit={handleSearch} />
-              
-              {error && (
-                <Alert severity="error" sx={{ mt: 3 }}>
-                  {error}
-                </Alert>
+
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            <TableContainer component={Paper} sx={{ backgroundColor: 'white' }}>
+              {recentSearches && recentSearches.length > 0 ? (
+                <>
+                  <Table sx={{ minWidth: 900 }}>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #2E3B55' }}>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '8%', borderRight: '1px solid #e0e0e0' }}>No.</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>First Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>Last Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '20%', borderRight: '1px solid #e0e0e0' }}>Address</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', borderRight: '1px solid #e0e0e0' }}>City, State, ZIP</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>Searched</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', textAlign: 'center' }}>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {recentSearches
+                        .slice(paginationPage * paginationRowsPerPage, paginationPage * paginationRowsPerPage + paginationRowsPerPage)
+                        .map((search, index) => (
+                          <TableRow 
+                            key={search.id}
+                            sx={{ 
+                              '&:hover': { 
+                                backgroundColor: 'rgba(46, 59, 85, 0.05)',
+                                transition: 'background-color 0.2s ease'
+                              },
+                              borderBottom: '1px solid #e0e0e0'
+                            }}
+                          >
+                            <TableCell sx={{ color: '#2E3B55', fontWeight: 500, borderRight: '1px solid #e0e0e0' }}>
+                              {paginationPage * paginationRowsPerPage + index + 1}
+                            </TableCell>
+                            <TableCell sx={{ color: '#2E3B55', borderRight: '1px solid #e0e0e0' }}>{search.first_name || '-'}</TableCell>
+                            <TableCell sx={{ color: '#2E3B55', borderRight: '1px solid #e0e0e0' }}>{search.last_name || '-'}</TableCell>
+                            <TableCell sx={{ color: '#5A6C7D', borderRight: '1px solid #e0e0e0' }}>{search.street || '-'}</TableCell>
+                            <TableCell sx={{ color: '#5A6C7D', borderRight: '1px solid #e0e0e0' }}>
+                              {[search.city, search.state, search.zip_code].filter(Boolean).join(', ') || '-'}
+                            </TableCell>
+                            <TableCell sx={{ color: '#999', fontSize: '0.9rem', borderRight: '1px solid #e0e0e0' }}>{search.date}</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  const formData: SearchFormData = {
+                                    FIRST_NAME: search.first_name || '',
+                                    LAST_NAME: search.last_name || '',
+                                    STREET1: search.street || '',
+                                    STREET2: '',
+                                    CITY: search.city || '',
+                                    STATE: search.state || '',
+                                    ZIP: search.zip_code || '',
+                                  };
+                                  setShowRecentSearchesPage(false);
+                                  handleSearch(formData);
+                                }}
+                                sx={{ color: '#2E3B55', '&:hover': { backgroundColor: 'rgba(46, 59, 85, 0.1)' } }}
+                              >
+                                <SearchIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                  <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={recentSearches.length}
+                    rowsPerPage={paginationRowsPerPage}
+                    page={paginationPage}
+                    onPageChange={(event, newPage) => setPaginationPage(newPage)}
+                    onRowsPerPageChange={(event) => {
+                      setPaginationRowsPerPage(parseInt(event.target.value, 10));
+                      setPaginationPage(0);
+                    }}
+                    sx={{
+                      backgroundColor: '#f9f9f9',
+                      borderTop: '1px solid #e0e0e0',
+                      '& .MuiTablePagination-select': {
+                        marginRight: '8px',
+                      }
+                    }}
+                  />
+                </>
+              ) : (
+                <Box sx={{ p: 6, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
+                    No recent searches yet
+                  </Typography>
+                </Box>
               )}
-            </Paper>
+            </TableContainer>
           </Box>
         </Box>
       ) : (
-        // Results layout (grid with left search, right results)
+        // Results layout (grid with left search, right results) - ALWAYS SHOWN
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: '400px 1fr',
@@ -219,46 +339,71 @@ const AppContent: React.FC = () => {
                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontSize: '1rem' }}>
                   Recent Searches
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {[
-                    { name: 'John Smith', address: '123 Main St, Chicago, IL', date: '2h ago' },
-                    { name: 'Sarah Johnson', address: '456 Oak Ave, New York, NY', date: '1d ago' },
-                    { name: 'Michael Brown', address: '789 Pine Rd, Los Angeles, CA', date: '2d ago' },
-                    { name: 'Emily Davis', address: '321 Elm St, Miami, FL', date: '3d ago' },
-                    { name: 'David Wilson', address: '654 Maple Dr, Seattle, WA', date: '1w ago' }
-                  ].map((search, index) => (
-                    <Box 
-                      key={index}
-                      sx={{ 
-                        p: 1.5, 
-                        borderRadius: 1.5, 
-                        backgroundColor: 'rgba(52, 152, 219, 0.04)',
-                        border: '1px solid rgba(52, 152, 219, 0.08)',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(52, 152, 219, 0.08)',
-                          borderColor: 'rgba(52, 152, 219, 0.15)',
-                          transform: 'translateY(-1px)'
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600, color: '#2C3E50', mb: 0.3, fontSize: '0.85rem' }}>
-                            {search.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#566573', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {search.address}
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" sx={{ color: '#7B8794', fontSize: '0.7rem', ml: 1, flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {recentSearches && recentSearches.length > 0 ? (
+                    recentSearches.slice(0, 5).map((search) => (
+                      <Box 
+                        key={search.id}
+                        sx={{ 
+                          p: 1.5, 
+                          borderRadius: 1.5, 
+                          backgroundColor: 'rgba(52, 152, 219, 0.04)',
+                          border: '1px solid rgba(52, 152, 219, 0.08)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            backgroundColor: 'rgba(52, 152, 219, 0.08)',
+                            borderColor: 'rgba(52, 152, 219, 0.15)',
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                        onClick={() => {
+                          const formData: SearchFormData = {
+                            FIRST_NAME: search.first_name || '',
+                            LAST_NAME: search.last_name || '',
+                            STREET1: search.street || '',
+                            STREET2: '',
+                            CITY: search.city || '',
+                            STATE: search.state || '',
+                            ZIP: search.zip_code || '',
+                          };
+                          handleSearch(formData);
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#2C3E50', fontSize: '0.85rem', mb: 0.3 }}>
+                          {search.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#566573', fontSize: '0.75rem', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mb: 0.3 }}>
+                          {search.address}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#7B8794', fontSize: '0.7rem' }}>
                           {search.date}
                         </Typography>
                       </Box>
-                    </Box>
-                  ))}
+                    ))
+                  ) : (
+                    <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>
+                      No recent searches
+                    </Typography>
+                  )}
                 </Box>
+                {recentSearches && recentSearches.length > 0 && (
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#3498db', 
+                      cursor: 'pointer', 
+                      mt: 1.5, 
+                      display: 'block',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                    onClick={() => setShowRecentSearchesPage(true)}
+                  >
+                    View all ({recentSearches.length})
+                  </Typography>
+                )}
               </Box>
               
               {error && (
@@ -619,7 +764,15 @@ const AppContent: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Search Results
               </Typography>
-              <TabbedResults data={results} searchCriteria={searchCriteria || undefined} />
+              {results ? (
+                <TabbedResults data={results} searchCriteria={searchCriteria || undefined} />
+              ) : (
+                <Box sx={{ py: 4, textAlign: 'center', color: '#999' }}>
+                  <Typography variant="body1">
+                    No search results yet. Enter a name and click Search to get started.
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </Box>
         </Box>

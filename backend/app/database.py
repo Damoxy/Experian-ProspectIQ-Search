@@ -65,7 +65,27 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     last_login = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=True)
+    
+    # Relationship to search history
+    search_history = relationship("SearchHistory", back_populates="user", cascade="all, delete-orphan")
+
+class SearchHistory(Base):
+    """Search history for tracking user searches"""
+    __tablename__ = "search_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    street = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True)
+    state = Column(String(50), nullable=True)
+    zip_code = Column(String(20), nullable=True)
+    searched_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    
+    # Relationship back to user
+    user = relationship("User", back_populates="search_history")
 
 class PasswordResetToken(Base):
     """Password reset token model"""

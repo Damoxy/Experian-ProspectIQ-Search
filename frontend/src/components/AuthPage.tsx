@@ -3,7 +3,6 @@ import { Box } from '@mui/material';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import ForgotPassword from './ForgotPassword';
-import AnimatedBubbles from './AnimatedBubbles';
 
 type AuthView = 'login' | 'signup' | 'forgot-password';
 
@@ -43,10 +42,9 @@ const AuthPage: React.FC = () => {
         position: 'relative', 
         minHeight: '100vh', 
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #bbdefb 100%)',
+        background: '#283E56',
       }}
     >
-      <AnimatedBubbles />
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         {renderCurrentView()}
       </Box>
