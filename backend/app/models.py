@@ -2,7 +2,7 @@
 Pydantic models for request/response validation
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Dict, Optional
 from datetime import datetime
 
@@ -48,6 +48,14 @@ class SearchRequest(BaseModel):
     CITY: str = Field(..., min_length=1, max_length=50, description="City")
     STATE: str = Field(..., min_length=2, max_length=2, description="State code (2 letters)")
     ZIP: str = Field(..., min_length=5, max_length=10, description="ZIP code")
+    
+    @field_validator('FIRST_NAME', 'LAST_NAME', 'STREET1', 'STREET2', 'CITY', 'STATE', 'ZIP', mode='before')
+    @classmethod
+    def strip_whitespace(cls, value):
+        """Strip leading/trailing whitespace from all string fields"""
+        if isinstance(value, str):
+            return value.strip()
+        return value
 
 class ExperianPayload(BaseModel):
     """Payload model for Experian API"""

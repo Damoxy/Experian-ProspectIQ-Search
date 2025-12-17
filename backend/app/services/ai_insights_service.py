@@ -184,6 +184,8 @@ class AIInsightsService:
                 if "choices" in api_response and len(api_response["choices"]) > 0:
                     insights_text = api_response["choices"][0]["message"]["content"]
                 
+                self.logger.info(f"Extracted insights for {category}: {insights_text[:100] if insights_text else 'EMPTY'}")
+                
                 formatted_response = {
                     "ai_insights": {
                         "category": category,
@@ -193,6 +195,8 @@ class AIInsightsService:
                         "generation_status": "success"
                     }
                 }
+                
+                self.logger.debug(f"Returning formatted response: {formatted_response}")
                 
                 return formatted_response
                 

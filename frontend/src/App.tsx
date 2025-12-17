@@ -11,8 +11,17 @@ import {
   ThemeProvider,
   createTheme,
   Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Button,
+  TablePagination,
 } from '@mui/material';
-import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule } from '@mui/icons-material';
+import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule, ArrowBack, Search as SearchIcon } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './components/AuthPage';
 import Header from './components/Header';
@@ -20,7 +29,7 @@ import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
 import AnimatedBubbles from './components/AnimatedBubbles';
-import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -84,6 +93,8 @@ const AppContent: React.FC = () => {
   const [searchCriteria, setSearchCriteria] = useState<SearchFormData | null>(null);
   const [recentSearches, setRecentSearches] = useState<any[]>([]);
   const [showRecentSearchesPage, setShowRecentSearchesPage] = useState(false);
+  const [paginationPage, setPaginationPage] = useState(0);
+  const [paginationRowsPerPage, setPaginationRowsPerPage] = useState(10);
   const { isAuthenticated, isLoading } = useAuth();
 
   // Load recent searches on mount and after successful search
@@ -102,6 +113,17 @@ const AppContent: React.FC = () => {
     } catch (err) {
       console.warn('Failed to load recent searches:', err instanceof Error ? err.message : 'Unknown error');
       // Don't fail the app if recent searches fail to load
+    }
+  };
+
+  const clearSearchHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all search history? This cannot be undone.')) {
+      try {
+        await clearRecentSearches();
+        setRecentSearches([]);
+      } catch (err) {
+        console.error('Failed to clear search history:', err);
+      }
     }
   };
 
@@ -169,96 +191,127 @@ const AppContent: React.FC = () => {
       <Container maxWidth={false} sx={{ pt: 12, pb: 4, px: 3, maxWidth: '100vw', position: 'relative' }}>
       
       {showRecentSearchesPage ? (
-        // Recent Searches Full Page
-        <Box sx={{ maxWidth: '900px', mx: 'auto' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
-            <Typography variant="h4" sx={{ fontWeight: 600, color: '#2E3B55' }}>
-              Recent Searches
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#999' }}>
-              ({recentSearches.length} total)
-            </Typography>
+        // Recent Searches Full Page - CRM Table Format
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f5' }}>
+          <Box sx={{ p: 3, backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <IconButton 
+                  onClick={() => setShowRecentSearchesPage(false)}
+                  sx={{ color: '#2E3B55' }}
+                >
+                  <ArrowBack />
+                </IconButton>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: '#2E3B55' }}>
+                    Recent Searches
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={clearSearchHistory}
+              >
+                Clear All
+              </Button>
+            </Box>
           </Box>
-          
-          <Paper elevation={3} sx={{ p: 3 }}>
-            {recentSearches && recentSearches.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {recentSearches.map((search) => (
-                  <Paper
-                    key={search.id}
-                    elevation={0}
+
+          <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+            <TableContainer component={Paper} sx={{ backgroundColor: 'white' }}>
+              {recentSearches && recentSearches.length > 0 ? (
+                <>
+                  <Table sx={{ minWidth: 900 }}>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #2E3B55' }}>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '8%', borderRight: '1px solid #e0e0e0' }}>No.</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>First Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>Last Name</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '20%', borderRight: '1px solid #e0e0e0' }}>Address</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', borderRight: '1px solid #e0e0e0' }}>City, State, ZIP</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>Searched</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', textAlign: 'center' }}>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {recentSearches
+                        .slice(paginationPage * paginationRowsPerPage, paginationPage * paginationRowsPerPage + paginationRowsPerPage)
+                        .map((search, index) => (
+                          <TableRow 
+                            key={search.id}
+                            sx={{ 
+                              '&:hover': { 
+                                backgroundColor: 'rgba(46, 59, 85, 0.05)',
+                                transition: 'background-color 0.2s ease'
+                              },
+                              borderBottom: '1px solid #e0e0e0'
+                            }}
+                          >
+                            <TableCell sx={{ color: '#2E3B55', fontWeight: 500, borderRight: '1px solid #e0e0e0' }}>
+                              {paginationPage * paginationRowsPerPage + index + 1}
+                            </TableCell>
+                            <TableCell sx={{ color: '#2E3B55', borderRight: '1px solid #e0e0e0' }}>{search.first_name || '-'}</TableCell>
+                            <TableCell sx={{ color: '#2E3B55', borderRight: '1px solid #e0e0e0' }}>{search.last_name || '-'}</TableCell>
+                            <TableCell sx={{ color: '#5A6C7D', borderRight: '1px solid #e0e0e0' }}>{search.street || '-'}</TableCell>
+                            <TableCell sx={{ color: '#5A6C7D', borderRight: '1px solid #e0e0e0' }}>
+                              {[search.city, search.state, search.zip_code].filter(Boolean).join(', ') || '-'}
+                            </TableCell>
+                            <TableCell sx={{ color: '#999', fontSize: '0.9rem', borderRight: '1px solid #e0e0e0' }}>{search.date}</TableCell>
+                            <TableCell sx={{ textAlign: 'center' }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  const formData: SearchFormData = {
+                                    FIRST_NAME: search.first_name || '',
+                                    LAST_NAME: search.last_name || '',
+                                    STREET1: search.street || '',
+                                    STREET2: '',
+                                    CITY: search.city || '',
+                                    STATE: search.state || '',
+                                    ZIP: search.zip_code || '',
+                                  };
+                                  setShowRecentSearchesPage(false);
+                                  handleSearch(formData);
+                                }}
+                                sx={{ color: '#2E3B55', '&:hover': { backgroundColor: 'rgba(46, 59, 85, 0.1)' } }}
+                              >
+                                <SearchIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                  <TablePagination
+                    rowsPerPageOptions={[10, 25, 50]}
+                    component="div"
+                    count={recentSearches.length}
+                    rowsPerPage={paginationRowsPerPage}
+                    page={paginationPage}
+                    onPageChange={(event, newPage) => setPaginationPage(newPage)}
+                    onRowsPerPageChange={(event) => {
+                      setPaginationRowsPerPage(parseInt(event.target.value, 10));
+                      setPaginationPage(0);
+                    }}
                     sx={{
-                      p: 3,
-                      background: 'rgba(46, 59, 85, 0.03)',
-                      border: '1px solid rgba(46, 59, 85, 0.1)',
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        background: 'rgba(46, 59, 85, 0.08)',
-                        border: '1px solid rgba(46, 59, 85, 0.2)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      backgroundColor: '#f9f9f9',
+                      borderTop: '1px solid #e0e0e0',
+                      '& .MuiTablePagination-select': {
+                        marginRight: '8px',
                       }
                     }}
-                    onClick={() => {
-                      const formData: SearchFormData = {
-                        FIRST_NAME: search.first_name || '',
-                        LAST_NAME: search.last_name || '',
-                        STREET1: search.street || '',
-                        STREET2: '',
-                        CITY: search.city || '',
-                        STATE: search.state || '',
-                        ZIP: search.zip_code || '',
-                      };
-                      setShowRecentSearchesPage(false);
-                      handleSearch(formData);
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#2E3B55', mb: 1 }}>
-                          {search.name}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#5A6C7D', mb: 0.5 }}>
-                          {search.address}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#999' }}>
-                          Searched {search.date}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ textAlign: 'right', ml: 2 }}>
-                        <Chip 
-                          label="Search Again" 
-                          color="primary" 
-                          variant="outlined"
-                          size="small"
-                        />
-                      </Box>
-                    </Box>
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', py: 4 }}>
-                No recent searches yet
-              </Typography>
-            )}
-          </Paper>
-          
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography 
-              variant="body2"
-              sx={{ 
-                color: '#3498db', 
-                cursor: 'pointer', 
-                fontWeight: 600,
-                '&:hover': { textDecoration: 'underline' }
-              }}
-              onClick={() => setShowRecentSearchesPage(false)}
-            >
-              ← Back to Search
-            </Typography>
+                  />
+                </>
+              ) : (
+                <Box sx={{ p: 6, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ color: '#999' }}>
+                    No recent searches yet
+                  </Typography>
+                </Box>
+              )}
+            </TableContainer>
           </Box>
         </Box>
       ) : (

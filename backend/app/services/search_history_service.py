@@ -21,7 +21,7 @@ class SearchHistoryService:
     ) -> SearchHistory:
         """
         Add a new search to user's history
-        Automatically removes old searches if limit exceeded (keeps last 10)
+        Automatically removes old searches if limit exceeded (keeps last 50)
         """
         # Create new search history entry
         search_entry = SearchHistory(
@@ -39,13 +39,13 @@ class SearchHistoryService:
         db.commit()
         db.refresh(search_entry)
         
-        # Clean up old searches - keep only last 10
+        # Clean up old searches - keep only last 50
         SearchHistoryService._cleanup_old_searches(db, user_id)
         
         return search_entry
     
     @staticmethod
-    def _cleanup_old_searches(db: Session, user_id: int, keep_count: int = 10) -> None:
+    def _cleanup_old_searches(db: Session, user_id: int, keep_count: int = 50) -> None:
         """Remove old searches when limit exceeded"""
         # Count current searches for user
         current_count = db.query(SearchHistory).filter(
@@ -53,7 +53,7 @@ class SearchHistoryService:
         ).count()
         
         if current_count > keep_count:
-            # Find searches to delete (older than the 10th most recent)
+            # Find searches to delete (older than the 50th most recent)
             searches_to_keep = db.query(SearchHistory).filter(
                 SearchHistory.user_id == user_id
             ).order_by(desc(SearchHistory.searched_at)).limit(keep_count).all()
@@ -70,7 +70,7 @@ class SearchHistoryService:
             db.commit()
     
     @staticmethod
-    def get_recent_searches(db: Session, user_id: int, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_searches(db: Session, user_id: int, limit: int = 50) -> List[Dict[str, Any]]:
         """Get user's recent searches (most recent first)"""
         searches = db.query(SearchHistory).filter(
             SearchHistory.user_id == user_id
