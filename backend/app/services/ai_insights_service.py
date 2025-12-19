@@ -133,7 +133,7 @@ class AIInsightsService:
                         "content": prompt
                     }
                 ],
-                "max_tokens": 1000,
+                "max_tokens": 2048,
                 "temperature": 0.7,
                 "top_p": 0.9
             }
@@ -174,6 +174,11 @@ class AIInsightsService:
                 # Parse response
                 try:
                     api_response = response.json()
+                    # --- DEBUGGING: PRINT RAW AI RESPONSE TO TERMINAL ---
+                    print("\n" + "="*20 + " RAW AI RESPONSE " + "="*20)
+                    print(json.dumps(api_response, indent=2))
+                    print("="*57 + "\n")
+                    # ----------------------------------------------------
                 except json.JSONDecodeError as e:
                     error_msg = f"Failed to parse AI insights API response: {str(e)}"
                     log_error(self.logger, error_msg, e)
@@ -183,6 +188,12 @@ class AIInsightsService:
                 insights_text = ""
                 if "choices" in api_response and len(api_response["choices"]) > 0:
                     insights_text = api_response["choices"][0]["message"]["content"]
+                
+                # --- DEBUGGING: PRINT EXTRACTED TEXT TO TERMINAL ---
+                print("\n" + "="*20 + " EXTRACTED INSIGHTS TEXT " + "="*20)
+                print(insights_text)
+                print("="*63 + "\n")
+                # ---------------------------------------------------
                 
                 self.logger.info(f"Extracted insights for {category}: {insights_text[:100] if insights_text else 'EMPTY'}")
                 
