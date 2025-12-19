@@ -178,3 +178,17 @@ export const clearRecentSearches = async (): Promise<any> => {
     throw new Error('An unexpected error occurred while clearing recent searches');
   }
 };
+
+// Transaction History API
+export const getTransactions = async (constituentId: string): Promise<any> => {
+  try {
+    const response = await apiClient.get(`/transactions/${constituentId}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Failed to fetch transactions';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred while fetching transactions');
+  }
+};

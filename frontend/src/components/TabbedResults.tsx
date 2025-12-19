@@ -26,7 +26,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress, generateAIInsights } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
@@ -65,6 +65,51 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const [phoneValidationData, setPhoneValidationData] = useState<any>(null);
   const [emailValidationLoading, setEmailValidationLoading] = useState(false);
   const [emailValidationData, setEmailValidationData] = useState<any>(null);
+  const [transactionData, setTransactionData] = useState<any>(null);
+  const [transactionLoading, setTransactionLoading] = useState(false);
+
+  // Auto-fetch transactions when data changes and constituent_id is available
+  React.useEffect(() => {
+    const fetchTransactionsAuto = async () => {
+      // Get constituent_id from data - check nested structure
+      let constituentId = data.constituent_id;
+      
+      // If not at root level, check nested structure
+      if (!constituentId && data.results?.consumer_behavior?.records?.[0]?.contact_info?.constituent_id) {
+        constituentId = data.results.consumer_behavior.records[0].contact_info.constituent_id;
+      }
+      
+      // Only fetch if we have constituent_id, it's a database source, and we haven't already loaded
+      const isDatabaseSource = data.source === 'database';
+      if (constituentId && isDatabaseSource && !transactionData && !transactionLoading) {
+        setTransactionLoading(true);
+        try {
+          console.log('Auto-fetching transactions for constituent_id:', constituentId);
+          const transactionResponse = await getTransactions(constituentId);
+          console.log('Transaction response:', transactionResponse);
+          
+          if (transactionResponse && transactionResponse.transactions) {
+            console.log('Transactions found:', transactionResponse.transactions.length);
+            setTransactionData(transactionResponse);
+          } else {
+            console.warn('No transactions in response');
+            setTransactionData({ transactions: [], total_count: 0 });
+          }
+        } catch (error) {
+          console.error('Transaction fetch failed:', error);
+          setTransactionData({ 
+            transactions: [], 
+            total_count: 0,
+            error: error instanceof Error ? error.message : 'Failed to fetch transactions'
+          });
+        } finally {
+          setTransactionLoading(false);
+        }
+      }
+    };
+
+    fetchTransactionsAuto();
+  }, [data]); // Re-run when data changes
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -225,6 +270,50 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
       });
     } finally {
       setEmailValidationLoading(false);
+    }
+  };
+
+  const handleFetchTransactions = async () => {
+    // Get constituent_id from data - check nested structure
+    let constituentId = data.constituent_id;
+    
+    // If not at root level, check nested structure
+    if (!constituentId && data.results?.consumer_behavior?.records?.[0]?.contact_info?.constituent_id) {
+      constituentId = data.results.consumer_behavior.records[0].contact_info.constituent_id;
+    }
+    
+    if (!constituentId) {
+      console.warn('No constituent_id available for fetching transactions');
+      setTransactionData({ 
+        transactions: [], 
+        total_count: 0,
+        error: 'No constituent ID found in search results'
+      });
+      return;
+    }
+
+    setTransactionLoading(true);
+    try {
+      console.log('Fetching transactions for constituent_id:', constituentId);
+      const transactionResponse = await getTransactions(constituentId);
+      console.log('Transaction response:', transactionResponse);
+      
+      if (transactionResponse && transactionResponse.transactions) {
+        console.log('Transactions found:', transactionResponse.transactions.length);
+        setTransactionData(transactionResponse);
+      } else {
+        console.warn('No transactions in response');
+        setTransactionData({ transactions: [], total_count: 0 });
+      }
+    } catch (error) {
+      console.error('Transaction fetch failed:', error);
+      setTransactionData({ 
+        transactions: [], 
+        total_count: 0,
+        error: error instanceof Error ? error.message : 'Failed to fetch transactions'
+      });
+    } finally {
+      setTransactionLoading(false);
     }
   };
 
@@ -510,15 +599,37 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           ['Home Market Value', 'Coming Soon'],
           ['Net Worth', 'Coming Soon']
         ];
-        subSections['Giving History'] = [
-          ['Gift Date', 'Coming Soon'],
-          ['Gift Amount', 'Coming Soon'],
-          ['Gift Type', 'Coming Soon'],
-          ['Campaign ID', 'Coming Soon'],
-          ['Fund ID', 'Coming Soon'],
-          ['Appeal', 'Coming Soon'],
-          ['Location ID', 'Coming Soon']
-        ];
+        // Check if we have transaction data or if it's loading/available
+        const hasConstituentId = data.constituent_id || data.results?.consumer_behavior?.records?.[0]?.contact_info?.constituent_id;
+        const isDatabaseSource = data.source === 'database';
+        
+        if (transactionLoading) {
+          // Show loading state
+          subSections['Giving History'] = [
+            ['Status', 'Loading transaction history...']
+          ];
+        } else if (transactionData && transactionData.transactions && transactionData.transactions.length > 0) {
+          // Display transaction data in table format
+          subSections['Giving History'] = [
+            ['__TRANSACTION_TABLE__', JSON.stringify(transactionData.transactions)]
+          ];
+        } else if (transactionData && transactionData.transactions && transactionData.transactions.length === 0) {
+          // No transactions found
+          subSections['Giving History'] = [
+            ['Status', 'No transaction history found for this constituent']
+          ];
+        } else if (!hasConstituentId || !isDatabaseSource) {
+          // No constituent_id available
+          subSections['Giving History'] = [
+            ['Status', 'Transaction history only available for database records'],
+            ['Note', 'Search using the database to view giving history']
+          ];
+        } else {
+          // Default state (shouldn't reach here normally)
+          subSections['Giving History'] = [
+            ['Status', 'Transaction history loading...']
+          ];
+        }
         subSections['Biography'] = [];
         
         fields.forEach(([key, value]) => {
@@ -1171,6 +1282,127 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                         {!searchCriteria && (
                           <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
                             Search criteria not available
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              // Transaction table rendering
+              if (key === '__TRANSACTION_TABLE__') {
+                const transactions = JSON.parse(value as string);
+                return (
+                  <React.Fragment key={`transaction-table-${index}`}>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell colSpan={2} sx={{ p: 0, border: 'none' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                width: '60px',
+                                textAlign: 'center'
+                              }}>S/N</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Gift Date</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Gift Amount</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Gift Type</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1
+                              }}>Pledge Balance</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {transactions.map((transaction: any, txIndex: number) => (
+                              <TableRow 
+                                key={txIndex}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#666'
+                                }}>{txIndex + 1}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{transaction.gift_date || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1, 
+                                  fontWeight: 600,
+                                  borderRight: '1px solid #e0e0e0',
+                                  color: '#2e7d32'
+                                }}>${transaction.gift_amount?.toFixed(2) || '0.00'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{transaction.gift_type || 'Unknown'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  color: transaction.gift_pledge_balance > 0 ? '#d32f2f' : '#666'
+                                }}>${transaction.gift_pledge_balance?.toFixed(2) || '0.00'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              }
+
+              // Fetch transactions button
+              if (key === '__FETCH_TRANSACTIONS_BUTTON__') {
+                return (
+                  <TableRow key={`fetch-transactions-${index}`}>
+                    <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', borderRight: '1px solid', borderColor: 'divider' }}>
+                      Transaction History
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ mt: 1 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={handleFetchTransactions}
+                          disabled={transactionLoading}
+                          startIcon={transactionLoading ? <CircularProgress size={16} /> : undefined}
+                        >
+                          {transactionLoading ? 'Loading...' : 'Load Giving History'}
+                        </Button>
+                        {transactionData?.error && (
+                          <Typography variant="caption" display="block" color="error" sx={{ mt: 1 }}>
+                            {transactionData.error}
                           </Typography>
                         )}
                       </Box>

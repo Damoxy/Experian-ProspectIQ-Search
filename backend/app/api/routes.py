@@ -5,6 +5,7 @@ API router for Experian search endpoints with comprehensive logging
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import json
 import time
 
@@ -359,6 +360,84 @@ async def generate_ai_insights(
         raise HTTPException(
             status_code=500,
             detail=f"AI insights generation failed: {str(e)}"
+        )
+
+@router.get("/transactions/{constituent_id}")
+async def get_transactions(
+    constituent_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    givingtrend_db: Session = Depends(get_givingtrend_db)
+):
+    """
+    Get transaction history for a constituent from GivingTrend database
+    (Protected endpoint - requires authentication)
+    """
+    start_time = time.time()
+    
+    # Validate authentication token
+    user_id = get_current_user_id(credentials.credentials)
+    logger.info(f"Authenticated transaction request from user ID: {user_id} for constituent: {constituent_id}")
+    
+    # Log incoming request
+    log_api_request(logger, f"/transactions/{constituent_id}", {"constituent_id": constituent_id})
+    
+    try:
+        # Query transactions from GivingTrend database
+        logger.info(f"Fetching transactions for constituent_id: {constituent_id}")
+        
+        query = text("""
+        SELECT 
+            Gift_Date,
+            Gift_Amount,
+            Gift_Type,
+            Gift_Pledge_Balance
+        FROM [KnowledgeCore_GivingTrendDB_test].[dbo].[Transaction]
+        WHERE Constituent_ID = :constituent_id
+        ORDER BY Gift_Date DESC
+        """)
+        
+        result = givingtrend_db.execute(query, {"constituent_id": constituent_id})
+        transactions = result.fetchall()
+        
+        if not transactions:
+            logger.info(f"No transactions found for constituent_id: {constituent_id}")
+            return {
+                "constituent_id": constituent_id,
+                "transactions": [],
+                "total_count": 0
+            }
+        
+        # Format transactions
+        formatted_transactions = []
+        for row in transactions:
+            formatted_transactions.append({
+                "gift_date": row.Gift_Date.strftime("%Y-%m-%d") if row.Gift_Date else None,
+                "gift_amount": float(row.Gift_Amount) if row.Gift_Amount else 0.0,
+                "gift_type": row.Gift_Type if row.Gift_Type else "Unknown",
+                "gift_pledge_balance": float(row.Gift_Pledge_Balance) if row.Gift_Pledge_Balance else 0.0
+            })
+        
+        logger.info(f"Found {len(formatted_transactions)} transactions for constituent_id: {constituent_id}")
+        
+        response = {
+            "constituent_id": constituent_id,
+            "transactions": formatted_transactions,
+            "total_count": len(formatted_transactions)
+        }
+        
+        # Log successful completion
+        total_time = time.time() - start_time
+        response_json = json.dumps(response)
+        log_api_response(logger, f"/transactions/{constituent_id}", 200, len(response_json))
+        logger.info(f"Transaction fetch completed in {total_time:.2f} seconds")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error fetching transactions for constituent {constituent_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch transactions: {str(e)}"
         )
 
 @router.get("/health")
