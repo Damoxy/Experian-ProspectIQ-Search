@@ -109,6 +109,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     };
 
     fetchTransactionsAuto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]); // Re-run when data changes
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
