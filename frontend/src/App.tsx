@@ -505,39 +505,21 @@ const AppContent: React.FC = () => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '32px', alignItems: 'start' }}>
-                  {/* LEFT COLUMN - Contact Information */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  {/* Contact Information Section */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 2 }}>
                     {/* Name */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Person sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                          Name
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '0.3px' }}>
-                          {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Address */}
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                      <Home sx={{ fontSize: 18, opacity: 0.8, mt: 0.5, flexShrink: 0 }} />
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                          Address
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 500, lineHeight: 1.4, opacity: 0.95 }}>
-                          {searchCriteria.STREET1}
-                          {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
-                          <br />
-                          {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Phone */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Person sx={{ fontSize: 20, opacity: 0.8, flexShrink: 0 }} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, fontSize: '0.9rem' }}>
+                            Name
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 600, letterSpacing: '0.3px', fontSize: '1.1rem' }}>
+                            {searchCriteria.FIRST_NAME} {searchCriteria.LAST_NAME}
+                          </Typography>
+                        </Box>
+                      </Box>                    {/* Phone */}
                     {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Phone sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
@@ -554,164 +536,202 @@ const AppContent: React.FC = () => {
 
                     {/* Email */}
                     {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                        <Email sx={{ fontSize: 18, opacity: 0.8, mt: 0.5, flexShrink: 0 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Email sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                           <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
                             Email
                           </Typography>
-                          <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                          <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95, lineHeight: 1.4, wordBreak: 'break-word', fontSize: '0.9rem' }}>
                             {results.results.consumer_behavior.records[0].contact_info.email || 'Not Available'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : null}
+
+                    {/* Constituent ID */}
+                    {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Badge sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
+                            Constituent ID
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
+                            {results.results.consumer_behavior.records[0].contact_info.constituent_id || 'Not Available'}
                           </Typography>
                         </Box>
                       </Box>
                     ) : null}
                   </Box>
 
-                  {/* RIGHT COLUMN - Financial & Transaction Data */}
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '32px', alignItems: 'start' }}>
-                    {/* Giving History Column */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {/* Largest Gift */}
-                      {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <TrendingUp sx={{ fontSize: 20, opacity: 0.8, flexShrink: 0 }} />
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, fontSize: '0.85rem' }}>
-                              Largest Gift
-                            </Typography>
-                            {(() => {
-                              const value = results.results.consumer_behavior.records[0].contact_info.largest_gift;
-                              if (!value || value === 'Not Available') {
-                                return <Typography variant="h6" sx={{ fontWeight: 600 }}>Not Available</Typography>;
-                              }
-                              const parts = value.split(' (');
-                              const amount = parts[0];
-                              const date = parts[1] ? parts[1].replace(')', '') : null;
-                              return (
-                                <>
-                                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', letterSpacing: '0.3px' }}>
-                                    {amount}
-                                  </Typography>
-                                  {date && (
-                                    <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
-                                      {date}
-                                    </Typography>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </Box>
-                        </Box>
-                      ) : null}
-
-                      {/* Latest Gift */}
-                      {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Schedule sx={{ fontSize: 20, opacity: 0.8, flexShrink: 0 }} />
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, fontSize: '0.85rem' }}>
-                              Latest Gift
-                            </Typography>
-                            {(() => {
-                              const value = results.results.consumer_behavior.records[0].contact_info.latest_gift;
-                              if (!value || value === 'Not Available') {
-                                return <Typography variant="h6" sx={{ fontWeight: 600 }}>Not Available</Typography>;
-                              }
-                              const parts = value.split(' (');
-                              const amount = parts[0];
-                              const date = parts[1] ? parts[1].replace(')', '') : null;
-                              return (
-                                <>
-                                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', letterSpacing: '0.3px' }}>
-                                    {amount}
-                                  </Typography>
-                                  {date && (
-                                    <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
-                                      {date}
-                                    </Typography>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </Box>
-                        </Box>
-                      ) : null}
-
-                      {/* First Gift */}
-                      {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <DateRange sx={{ fontSize: 20, opacity: 0.8, flexShrink: 0 }} />
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9, fontSize: '0.85rem' }}>
-                              First Gift
-                            </Typography>
-                            {(() => {
-                              const value = results.results.consumer_behavior.records[0].contact_info.first_gift;
-                              if (!value || value === 'Not Available') {
-                                return <Typography variant="h6" sx={{ fontWeight: 600 }}>Not Available</Typography>;
-                              }
-                              const parts = value.split(' (');
-                              const amount = parts[0];
-                              const date = parts[1] ? parts[1].replace(')', '') : null;
-                              return (
-                                <>
-                                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', letterSpacing: '0.3px' }}>
-                                    {amount}
-                                  </Typography>
-                                  {date && (
-                                    <Typography variant="caption" sx={{ color: 'white', fontSize: '0.75rem', opacity: 0.8 }}>
-                                      {date}
-                                    </Typography>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </Box>
-                        </Box>
-                      ) : null}
+                  {/* Address */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, pb: 2, borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+                    <Home sx={{ fontSize: 18, opacity: 0.8, mt: 0.5, flexShrink: 0 }} />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
+                        Address
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.4, opacity: 0.95 }}>
+                        {searchCriteria.STREET1}
+                        {searchCriteria.STREET2 && `, ${searchCriteria.STREET2}`}
+                        <br />
+                        {searchCriteria.CITY}, {searchCriteria.STATE} {searchCriteria.ZIP}
+                      </Typography>
                     </Box>
+                  </Box>
 
-                    {/* Lifetime Giving Column */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <AttachMoney sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                              Lifetime Giving
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 700, opacity: 0.95, color: 'white' }}>
-                              {(() => {
-                                const value = results.results.consumer_behavior.records[0].contact_info.lifetime_giving;
-                                if (!value || value === 'Not Available') return 'Not Available';
-                                const match = value.match(/^\$[\d,.]+(\.[ 0-9]{2})?/);
-                                return match ? match[0] : value;
-                              })()}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ) : null}
+                  {/* Dashboard Tiles */}
+                  {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 2 }}>
+                      {/* Largest Gift Tile */}
+                      <Box sx={{
+                        p: 1.5,
+                        background: 'rgba(102, 126, 234, 0.15)',
+                        borderRadius: 1.5,
+                        border: '1px solid rgba(102, 126, 234, 0.3)',
+                        textAlign: 'center',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(102, 126, 234, 0.25)',
+                          borderColor: 'rgba(102, 126, 234, 0.6)',
+                        }
+                      }}>
+                        <TrendingUp sx={{ fontSize: 24, mb: 0.5, opacity: 0.9 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.85, display: 'block', fontSize: '0.8rem' }}>
+                          Largest Gift
+                        </Typography>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.largest_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>N/A</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ fontWeight: 500, opacity: 0.75, display: 'block', fontSize: '0.75rem' }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </Box>
+
+                      {/* Latest Gift Tile */}
+                      <Box sx={{
+                        p: 1.5,
+                        background: 'rgba(245, 87, 108, 0.15)',
+                        borderRadius: 1.5,
+                        border: '1px solid rgba(245, 87, 108, 0.3)',
+                        textAlign: 'center',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(245, 87, 108, 0.25)',
+                          borderColor: 'rgba(245, 87, 108, 0.6)',
+                        }
+                      }}>
+                        <Schedule sx={{ fontSize: 24, mb: 0.5, opacity: 0.9 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.85, display: 'block', fontSize: '0.8rem' }}>
+                          Latest Gift
+                        </Typography>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.latest_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>N/A</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ fontWeight: 500, opacity: 0.75, display: 'block', fontSize: '0.75rem' }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </Box>
+
+                      {/* First Gift Tile */}
+                      <Box sx={{
+                        p: 1.5,
+                        background: 'rgba(79, 172, 254, 0.15)',
+                        borderRadius: 1.5,
+                        border: '1px solid rgba(79, 172, 254, 0.3)',
+                        textAlign: 'center',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(79, 172, 254, 0.25)',
+                          borderColor: 'rgba(79, 172, 254, 0.6)',
+                        }
+                      }}>
+                        <DateRange sx={{ fontSize: 24, mb: 0.5, opacity: 0.9 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.85, display: 'block', fontSize: '0.8rem' }}>
+                          First Gift
+                        </Typography>
+                        {(() => {
+                          const value = results.results.consumer_behavior.records[0].contact_info.first_gift;
+                          if (!value || value === 'Not Available') {
+                            return <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>N/A</Typography>;
+                          }
+                          const parts = value.split(' (');
+                          const amount = parts[0];
+                          const date = parts[1] ? parts[1].replace(')', '') : null;
+                          return (
+                            <>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                                {amount}
+                              </Typography>
+                              {date && (
+                                <Typography variant="caption" sx={{ fontWeight: 500, opacity: 0.75, display: 'block', fontSize: '0.75rem' }}>
+                                  {date}
+                                </Typography>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </Box>
+
+                      {/* Lifetime Giving Tile */}
+                      <Box sx={{
+                        p: 1.5,
+                        background: 'rgba(67, 233, 123, 0.15)',
+                        borderRadius: 1.5,
+                        border: '1px solid rgba(67, 233, 123, 0.3)',
+                        textAlign: 'center',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(67, 233, 123, 0.25)',
+                          borderColor: 'rgba(67, 233, 123, 0.6)',
+                        }
+                      }}>
+                        <AttachMoney sx={{ fontSize: 24, mb: 0.5, opacity: 0.9 }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.85, display: 'block', fontSize: '0.8rem' }}>
+                          Lifetime Giving
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                          {(() => {
+                            const value = results.results.consumer_behavior.records[0].contact_info.lifetime_giving;
+                            if (!value || value === 'Not Available') return 'N/A';
+                            const match = value.match(/^\$[\d,.]+(\.[ 0-9]{2})?/);
+                            return match ? match[0] : value;
+                          })()}
+                        </Typography>
+                      </Box>
                     </Box>
-
-                    {/* Constituent ID Column */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {results?.source === 'database' && results?.results?.consumer_behavior?.records?.[0]?.contact_info ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Badge sx={{ fontSize: 18, opacity: 0.8, flexShrink: 0 }} />
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, opacity: 0.9 }}>
-                              Constituent ID
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500, opacity: 0.95 }}>
-                              {results.results.consumer_behavior.records[0].contact_info.constituent_id || 'Not Available'}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ) : null}
-                    </Box>
-
-                </Box>
+                  ) : null}
                 </Box>
                 
                 {/* Source Badge - positioned absolutely at extreme right */}

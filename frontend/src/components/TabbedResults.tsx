@@ -410,8 +410,73 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     flattenedData.forEach(([key, value]) => {
       const lowerKey = key.toLowerCase();
       
+      // HH: prefix fields go to Consumer Behavior
+      if (lowerKey.startsWith('hh:') || lowerKey.includes('hh:lifestyle') || lowerKey.includes('hh:')) {
+        categories['Consumer Behavior'].push([key, value]);
+      }
+      // Property/Asset fields go to Financial
+      else if (
+        lowerKey.includes('home land value') ||
+        lowerKey.includes('home total value') ||
+        lowerKey.includes('home: home purchase price') ||
+        lowerKey.includes('home: purchase date') ||
+        lowerKey.includes('home: swimming pool') ||
+        lowerKey.includes('length of residence')
+      ) {
+        categories['Financial'].push([key, value]);
+      }
+      // Demographic/Profile fields (move specific geo and address fields)
+      else if (
+        lowerKey.includes('children by age/gender') ||
+        lowerKey.includes('number of children in household') ||
+        lowerKey.includes('zipplus') ||
+        lowerKey.includes('fallback source') ||
+        lowerKey.includes('database checked') ||
+        lowerKey.includes('database records found') ||
+        lowerKey.includes('mobile count') ||
+        lowerKey.includes('landline count') ||
+        lowerKey.includes('dnc compliant count') ||
+        lowerKey.includes('non dnc count') ||
+        lowerKey.includes('api source') ||
+        lowerKey.includes('validation date') ||
+        lowerKey.includes('validation status') ||
+        lowerKey.includes('predir') ||
+        lowerKey.includes('prim name') ||
+        lowerKey.includes('prim range') ||
+        lowerKey.includes('real estate tax') ||
+        lowerKey.includes('suffix') ||
+        lowerKey.includes('suitablefordelivery') ||
+        lowerKey.includes('transaction id') ||
+        lowerKey.includes('carrier route') ||
+        lowerKey.includes('checkdigit') ||
+        lowerKey.includes('city name') ||
+        lowerKey.includes('country') ||
+        lowerKey.includes('county') ||
+        lowerKey.includes('county code') ||
+        lowerKey.includes('data type') ||
+        lowerKey.includes('dpbc') ||
+        lowerKey.includes('dse: apparel') ||
+        lowerKey.includes('dse: travel') ||
+        lowerKey.includes('fipscode') ||
+        lowerKey.includes('geo blk') ||
+        lowerKey.includes('geo lat') ||
+        lowerKey.includes('geo lng') ||
+        lowerKey.includes('geo msa') ||
+        lowerKey.includes('geomatch')
+      ) {
+        categories['Profile'].push([key, value]);
+      }
+      // Credit-related fields go to Financial
+      else if (
+        lowerKey.includes('avg mrgg type') ||
+        lowerKey.includes('avg rvlv bnkcd') ||
+        lowerKey.includes('avg mrgg type trd') ||
+        lowerKey.includes('avg rvlv bnkcd trd')
+      ) {
+        categories['Financial'].push([key, value]);
+      }
       // Contact Validation patterns (check first to avoid conflicts)
-      if (
+      else if (
         lowerKey.includes('phone_validation') ||
         lowerKey.includes('phones_found') ||
         lowerKey.includes('mobile_phones') ||
@@ -631,12 +696,12 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
             ['Status', 'Transaction history loading...']
           ];
         }
-        subSections['Biography'] = [];
+        subSections['Biographical'] = [];
         
         fields.forEach(([key, value]) => {
           const lowerKey = key.toLowerCase();
           if (!lowerKey.includes('donation') && !lowerKey.includes('giving') && !lowerKey.includes('charity')) {
-            subSections['Biography'].push([key, value]);
+            subSections['Biographical'].push([key, value]);
           }
         });
         break;
@@ -653,7 +718,12 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         
         fields.forEach(([key, value]) => {
           const lowerKey = key.toLowerCase();
-          if (lowerKey.includes('wealth') || lowerKey.includes('income') || lowerKey.includes('credit')) {
+          if (lowerKey.includes('hh:') || lowerKey.startsWith('hh:')) {
+            // Move HH prefix fields to Consumer Behavior (handled in categorizeFields)
+            // These should not appear in Financial
+          } else if (lowerKey.includes('invest:') || lowerKey.startsWith('invest:')) {
+            subSections['Assets'].push([key, value]);
+          } else if (lowerKey.includes('wealth') || lowerKey.includes('income') || lowerKey.includes('credit')) {
             subSections['Wealth Analysis'].push([key, value]);
           } else if (lowerKey.includes('asset') || lowerKey.includes('property') || lowerKey.includes('home')) {
             subSections['Assets'].push([key, value]);
@@ -668,7 +738,10 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         break;
         
       case 'Political Interests':
-        subSections['FEC Contributions'] = fields;
+        subSections['Political Interests'] = fields;
+        subSections['Political Contributions'] = [
+          ['Status', 'This section will be available soon']
+        ];
         break;
         
       case 'Charitable Activities':
@@ -799,17 +872,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         break;
 
       case 'Philanthropy':
-        subSections['Giving Capacity'] = [
-          ['Estimated Capacity', 'Coming Soon'],
-          ['Giving History', 'Coming Soon'],
-          ['Preferred Causes', 'Coming Soon'],
-          ['Donor Segment', 'Coming Soon'],
-          ['Annual Giving Potential', 'Coming Soon']
-        ];
-        subSections['Foundation Involvement'] = [
-          ['Board Memberships', 'Coming Soon'],
-          ['Foundation Donations', 'Coming Soon'],
-          ['Grant Making', 'Coming Soon']
+        subSections['Contributions to Organizations'] = [
+          ['Status', 'This section will be available soon']
         ];
         break;
 
@@ -828,16 +892,14 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         break;
 
       case 'Social Media':
-        subSections['Social Profiles'] = [
-          ['LinkedIn Profile', 'Coming Soon'],
-          ['Facebook Profile', 'Coming Soon'],
-          ['Twitter Profile', 'Coming Soon'],
-          ['Instagram Profile', 'Coming Soon']
+        subSections['LinkedIn'] = [
+          ['Status', 'This section will be available soon']
         ];
-        subSections['Social Insights'] = [
-          ['Social Influence Score', 'Coming Soon'],
-          ['Network Size', 'Coming Soon'],
-          ['Engagement Rate', 'Coming Soon']
+        subSections['Facebook'] = [
+          ['Status', 'This section will be available soon']
+        ];
+        subSections['Instagram'] = [
+          ['Status', 'This section will be available soon']
         ];
         break;
 
@@ -926,7 +988,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
       <Box sx={{ mb: 3, p: 2, backgroundColor: '#f8f9fa', borderRadius: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#495057' }}>
-            AI Insights
+            KnowledgeCore AI Analysis
           </Typography>
           <Button
             variant="contained"
@@ -1001,7 +1063,11 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
     const hasAiInsights = ['Profile', 'Financial', 'Political Interests', 'Charitable Activities', 'Social Media', 'News'].includes(category);
     
-    if (fields.length === 0) {
+    // Get sub-sections first (even if fields are empty, we might have predefined sections)
+    const subSections = getSubSections(category, fields);
+    const hasSubSections = Object.keys(subSections).length > 0;
+    
+    if (fields.length === 0 && !hasSubSections) {
       return (
         <Box>
           <Paper variant="outlined" sx={{ p: 6, textAlign: 'center', bgcolor: 'grey.50' }}>
@@ -1016,8 +1082,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         </Box>
       );
     }
-
-    const subSections = getSubSections(category, fields);
     
     return (
       <Box>
