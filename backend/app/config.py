@@ -26,10 +26,9 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://mango-meadow-088b06e1e.3.azurestaticapps.net",
 ]
 
-# Add additional origins from environment variable
+# Add origins from environment variable
 env_origins = os.getenv("ALLOWED_ORIGINS")
 if env_origins:
     additional_origins = env_origins.split(",")
