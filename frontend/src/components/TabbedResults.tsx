@@ -12,17 +12,10 @@ import {
   TableRow,
   Paper,
   Chip,
-  TextField,
-  InputAdornment,
-  Collapse,
-  IconButton,
   Button,
   CircularProgress,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
@@ -57,8 +50,7 @@ function TabPanel(props: TabPanelProps) {
 
 const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) => {
   const [value, setValue] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [selectedSubSection, setSelectedSubSection] = useState<{ [key: string]: string }>({});
   const [aiInsightsLoading, setAiInsightsLoading] = useState<{ [key: string]: boolean }>({});
   const [aiInsightsResults, setAiInsightsResults] = useState<{ [key: string]: string }>({});
   const [phoneValidationLoading, setPhoneValidationLoading] = useState(false);
@@ -116,12 +108,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     setValue(newValue);
   };
 
-  const toggleSection = (sectionKey: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
-  };
+
 
   const handleAiInsights = async (category: string) => {
     setAiInsightsLoading(prev => ({ ...prev, [category]: true }));
@@ -351,18 +338,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     }
     
     return <Typography variant="body2">{String(value)}</Typography>;
-  };
-
-  // Function to filter fields based on search term
-  const filterFields = (fields: Array<[string, any]>, searchTerm: string): Array<[string, any]> => {
-    if (!searchTerm.trim()) return fields;
-    
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return fields.filter(([key, value]) => {
-      const keyMatch = key.toLowerCase().includes(lowerSearchTerm);
-      const valueMatch = String(value).toLowerCase().includes(lowerSearchTerm);
-      return keyMatch || valueMatch;
-    });
   };
 
   // Function to categorize fields based on patterns in field names
@@ -639,12 +614,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   };
 
   const allCategorizedData = categorizeFields(data);
-  
-  // Apply search filtering to each category
-  const categorizedData = Object.keys(allCategorizedData).reduce((acc, category) => {
-    acc[category] = filterFields(allCategorizedData[category], searchTerm);
-    return acc;
-  }, {} as Record<string, Array<[string, any]>>);
+  const categorizedData = allCategorizedData;
 
   // Define sub-sections for each category
   const getSubSections = (category: string, fields: Array<[string, any]>) => {
@@ -931,53 +901,7 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     return subSections;
   };
 
-  // Create expandable sub-section component
-  const createExpandableSubSection = (title: string, fields: Array<[string, any]>, sectionKey: string) => {
-    const isExpanded = expandedSections[sectionKey];
-    
-    if (fields.length === 0) return null;
 
-    return (
-      <Box key={sectionKey} sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-            backgroundColor: '#f8f9fa',
-            borderRadius: 1,
-            cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: '#e9ecef',
-            }
-          }}
-          onClick={() => toggleSection(sectionKey)}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: '#495057' }}>
-            {title}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip 
-              label={fields.length} 
-              size="small" 
-              color="primary"
-              sx={{ fontWeight: 600 }}
-            />
-            <IconButton size="small" sx={{ color: '#6c757d' }}>
-              {isExpanded ? <RemoveIcon /> : <AddIcon />}
-            </IconButton>
-          </Box>
-        </Box>
-        
-        <Collapse in={isExpanded}>
-          <Box sx={{ mt: 1 }}>
-            {createResultsTable(fields)}
-          </Box>
-        </Collapse>
-      </Box>
-    );
-  };
 
   // Create AI Insights component
   const createAiInsightsSection = (category: string) => {
@@ -1059,13 +983,18 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     );
   };
 
-  // Create the results with expandable sub-sections
+  // Create the results with tab-based sub-sections
   const createExpandableResults = (category: string, fields: Array<[string, any]>) => {
     const hasAiInsights = ['Profile', 'Financial', 'Political Interests', 'Charitable Activities', 'Social Media', 'News'].includes(category);
     
     // Get sub-sections first (even if fields are empty, we might have predefined sections)
     const subSections = getSubSections(category, fields);
     const hasSubSections = Object.keys(subSections).length > 0;
+    const subSectionTitles = Object.keys(subSections);
+    
+    // Get or initialize selected sub-section for this category
+    const selectedTab = selectedSubSection[category] || (subSectionTitles.length > 0 ? subSectionTitles[0] : '');
+    const selectedFields = subSections[selectedTab] || [];
     
     if (fields.length === 0 && !hasSubSections) {
       return (
@@ -1085,9 +1014,50 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     
     return (
       <Box>
-        {Object.entries(subSections).map(([title, subFields]) => 
-          createExpandableSubSection(title, subFields, `${category}-${title}`)
+        {hasSubSections && (
+          <Box sx={{ borderBottom: 3, borderColor: '#e0e0e0', mb: 3, backgroundColor: '#f5f7fa', borderRadius: 1 }}>
+            <Tabs
+              value={selectedTab}
+              onChange={(event, newValue) => setSelectedSubSection(prev => ({ ...prev, [category]: newValue }))}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{
+                '& .MuiTabs-indicator': {
+                  backgroundColor: '#6366f1',
+                  height: 4
+                },
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  color: '#555',
+                  padding: '12px 16px',
+                  minHeight: '52px',
+                  backgroundColor: '#d3d3d3',
+                  marginRight: '2px',
+                  '&.Mui-selected': {
+                    color: '#6366f1',
+                    backgroundColor: '#fff'
+                  },
+                  '&:hover': {
+                    backgroundColor: '#bfbfbf'
+                  }
+                }
+              }}
+            >
+              {subSectionTitles.map(title => (
+                <Tab key={title} label={title} value={title} />
+              ))}
+            </Tabs>
+          </Box>
         )}
+        
+        {hasSubSections && selectedFields.length > 0 && (
+          <Box sx={{ mb: 3 }}>
+            {createResultsTable(selectedFields)}
+          </Box>
+        )}
+        
         {hasAiInsights && createAiInsightsSection(category)}
       </Box>
     );
@@ -1574,36 +1544,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Search Field */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <TextField
-          size="small"
-          variant="outlined"
-          placeholder="Search results..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{
-            width: 280,
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'white',
-              '&:hover fieldset': {
-                borderColor: '#283E56',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#283E56',
-              },
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#283E56', fontSize: '1.2rem' }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-      
       <Paper elevation={1} sx={{ mb: 2 }}>
         <Tabs 
           value={value} 
