@@ -20,6 +20,7 @@ import {
   IconButton,
   Button,
   TablePagination,
+  Checkbox,
 } from '@mui/material';
 import { Person, Home, Phone, Email, Badge, AttachMoney, TrendingUp, DateRange, Schedule, ArrowBack, Search as SearchIcon } from '@mui/icons-material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -28,7 +29,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
-import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches, deleteSelectedSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -94,6 +95,7 @@ const AppContent: React.FC = () => {
   const [showRecentSearchesPage, setShowRecentSearchesPage] = useState(false);
   const [paginationPage, setPaginationPage] = useState(0);
   const [paginationRowsPerPage, setPaginationRowsPerPage] = useState(10);
+  const [selectedSearchIds, setSelectedSearchIds] = useState<Set<number>>(new Set());
   const { isAuthenticated, isLoading } = useAuth();
 
   // Load recent searches on mount and after successful search
@@ -120,8 +122,50 @@ const AppContent: React.FC = () => {
       try {
         await clearRecentSearches();
         setRecentSearches([]);
+        setSelectedSearchIds(new Set());
       } catch (err) {
         console.error('Failed to clear search history:', err);
+      }
+    }
+  };
+
+  const handleToggleSelectSearch = (searchId: number) => {
+    const newSelected = new Set(selectedSearchIds);
+    if (newSelected.has(searchId)) {
+      newSelected.delete(searchId);
+    } else {
+      newSelected.add(searchId);
+    }
+    setSelectedSearchIds(newSelected);
+  };
+
+  const handleSelectAllSearches = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      // Select all searches on current page
+      const currentPageSearches = recentSearches.slice(
+        paginationPage * paginationRowsPerPage,
+        paginationPage * paginationRowsPerPage + paginationRowsPerPage
+      );
+      setSelectedSearchIds(new Set(currentPageSearches.map(search => search.id)));
+    } else {
+      setSelectedSearchIds(new Set());
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedSearchIds.size === 0) {
+      alert('Please select at least one search to delete.');
+      return;
+    }
+    
+    if (window.confirm(`Delete ${selectedSearchIds.size} selected search(es)? This cannot be undone.`)) {
+      try {
+        const searchIds = Array.from(selectedSearchIds);
+        await deleteSelectedSearches(searchIds);
+        setRecentSearches(recentSearches.filter(search => !selectedSearchIds.has(search.id)));
+        setSelectedSearchIds(new Set());
+      } catch (err) {
+        console.error('Failed to delete selected searches:', err);
       }
     }
   };
@@ -205,16 +249,33 @@ const AppContent: React.FC = () => {
                   <Typography variant="h5" sx={{ fontWeight: 600, color: '#2E3B55' }}>
                     Recent Searches
                   </Typography>
+                  {selectedSearchIds.size > 0 && (
+                    <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
+                      {selectedSearchIds.size} selected
+                    </Typography>
+                  )}
                 </Box>
               </Box>
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                onClick={clearSearchHistory}
-              >
-                Clear All
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {selectedSearchIds.size > 0 && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={handleDeleteSelected}
+                  >
+                    Delete Selected ({selectedSearchIds.size})
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={clearSearchHistory}
+                >
+                  Clear All
+                </Button>
+              </Box>
             </Box>
           </Box>
 
@@ -231,7 +292,14 @@ const AppContent: React.FC = () => {
                         <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '20%', borderRight: '1px solid #e0e0e0' }}>Address</TableCell>
                         <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', borderRight: '1px solid #e0e0e0' }}>City, State, ZIP</TableCell>
                         <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '14%', borderRight: '1px solid #e0e0e0' }}>Searched</TableCell>
-                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '15%', textAlign: 'center' }}>Action</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '8%', borderRight: '1px solid #e0e0e0', textAlign: 'center' }}>Action</TableCell>
+                        <TableCell sx={{ fontWeight: 700, color: '#2E3B55', width: '3%', padding: '8px', textAlign: 'center' }}>
+                          <Checkbox
+                            checked={selectedSearchIds.size > 0 && selectedSearchIds.size === recentSearches.slice(paginationPage * paginationRowsPerPage, paginationPage * paginationRowsPerPage + paginationRowsPerPage).length}
+                            indeterminate={selectedSearchIds.size > 0 && selectedSearchIds.size < recentSearches.slice(paginationPage * paginationRowsPerPage, paginationPage * paginationRowsPerPage + paginationRowsPerPage).length}
+                            onChange={handleSelectAllSearches}
+                          />
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -245,7 +313,8 @@ const AppContent: React.FC = () => {
                                 backgroundColor: 'rgba(46, 59, 85, 0.05)',
                                 transition: 'background-color 0.2s ease'
                               },
-                              borderBottom: '1px solid #e0e0e0'
+                              borderBottom: '1px solid #e0e0e0',
+                              backgroundColor: selectedSearchIds.has(search.id) ? 'rgba(46, 59, 85, 0.1)' : 'inherit'
                             }}
                           >
                             <TableCell sx={{ color: '#2E3B55', fontWeight: 500, borderRight: '1px solid #e0e0e0' }}>
@@ -258,7 +327,7 @@ const AppContent: React.FC = () => {
                               {[search.city, search.state, search.zip_code].filter(Boolean).join(', ') || '-'}
                             </TableCell>
                             <TableCell sx={{ color: '#999', fontSize: '0.9rem', borderRight: '1px solid #e0e0e0' }}>{search.date}</TableCell>
-                            <TableCell sx={{ textAlign: 'center' }}>
+                            <TableCell sx={{ textAlign: 'center', borderRight: '1px solid #e0e0e0' }}>
                               <IconButton
                                 size="small"
                                 onClick={() => {
@@ -278,6 +347,12 @@ const AppContent: React.FC = () => {
                               >
                                 <SearchIcon />
                               </IconButton>
+                            </TableCell>
+                            <TableCell sx={{ padding: '8px', textAlign: 'center' }}>
+                              <Checkbox
+                                checked={selectedSearchIds.has(search.id)}
+                                onChange={() => handleToggleSelectSearch(search.id)}
+                              />
                             </TableCell>
                           </TableRow>
                         ))}

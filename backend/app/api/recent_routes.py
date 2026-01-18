@@ -5,6 +5,8 @@ Recent Searches API Routes
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import List
 import time
 
 from database import get_experian_db
@@ -16,6 +18,11 @@ from config import DEBUG
 logger = setup_logging(DEBUG)
 router = APIRouter(prefix="/recent", tags=["recent-searches"])
 security = HTTPBearer()
+
+
+class DeleteSearchRequest(BaseModel):
+    """Request model for deleting searches"""
+    search_ids: List[int]
 
 
 @router.get("/searches")
@@ -91,4 +98,55 @@ async def clear_recent_searches(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to clear search history"
+        )
+
+
+@router.delete("/searches/delete")
+async def delete_selected_searches(
+    delete_request: DeleteSearchRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_experian_db)
+):
+    """
+    Delete selected searches by their IDs
+    (Protected endpoint - requires authentication)
+    """
+    try:
+        # Validate authentication token
+        user_id = get_current_user_id(credentials.credentials)
+        logger.info(f"Delete searches request from user ID: {user_id}, Search IDs: {delete_request.search_ids}")
+        
+        # Log incoming request
+        log_api_request(logger, "/recent/searches/delete", {
+            "user_id": user_id,
+            "search_ids": delete_request.search_ids
+        })
+        
+        # Validate that search_ids is not empty
+        if not delete_request.search_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No search IDs provided"
+            )
+        
+        # Delete selected searches
+        deleted_count = SearchHistoryService.delete_multiple_searches(
+            db, user_id, delete_request.search_ids
+        )
+        
+        logger.info(f"Deleted {deleted_count} searches for user ID: {user_id}")
+        
+        return {
+            "status": "success",
+            "message": f"Successfully deleted {deleted_count} search(es)",
+            "deleted_count": deleted_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting selected searches: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete selected searches"
         )

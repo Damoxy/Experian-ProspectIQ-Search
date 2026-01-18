@@ -179,6 +179,21 @@ export const clearRecentSearches = async (): Promise<any> => {
   }
 };
 
+export const deleteSelectedSearches = async (searchIds: number[]): Promise<any> => {
+  try {
+    const response = await apiClient.delete('/recent/searches/delete', {
+      data: { search_ids: searchIds }
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Failed to delete selected searches';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred while deleting selected searches');
+  }
+};
+
 // Transaction History API
 export const getTransactions = async (constituentId: string): Promise<any> => {
   try {

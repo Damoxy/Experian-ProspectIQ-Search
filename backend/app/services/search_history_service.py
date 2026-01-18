@@ -125,6 +125,32 @@ class SearchHistoryService:
             return f"{weeks}w ago"
     
     @staticmethod
+    def delete_search(db: Session, user_id: int, search_id: int) -> bool:
+        """Delete a specific search by ID (verifies ownership)"""
+        search = db.query(SearchHistory).filter(
+            SearchHistory.id == search_id,
+            SearchHistory.user_id == user_id
+        ).first()
+        
+        if search:
+            db.delete(search)
+            db.commit()
+            return True
+        return False
+    
+    @staticmethod
+    def delete_multiple_searches(db: Session, user_id: int, search_ids: List[int]) -> int:
+        """Delete multiple searches by IDs (verifies ownership)"""
+        # Delete only searches that belong to the user
+        deleted_count = db.query(SearchHistory).filter(
+            SearchHistory.id.in_(search_ids),
+            SearchHistory.user_id == user_id
+        ).delete()
+        
+        db.commit()
+        return deleted_count
+    
+    @staticmethod
     def clear_search_history(db: Session, user_id: int) -> None:
         """Clear all search history for a user"""
         db.query(SearchHistory).filter(
