@@ -6,7 +6,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_, func, distinct
+from sqlalchemy import or_, and_, func, distinct, text
 from database import Constituent, Transaction, get_givingtrend_db
 from models import SearchRequest
 from core.logging_config import setup_logging
@@ -86,10 +86,29 @@ class KnowledgeCoreService:
             Dictionary containing gift metrics with dates
         """
         try:
-            # Query all transactions for this constituent
-            transactions = db.query(Transaction).filter(
-                Transaction.Constituent_ID == constituent_id
-            ).all()
+            self.logger.info(f"Calculating gift metrics for constituent_id: {constituent_id}")
+            
+            # Use raw SQL query to avoid ORM deduplication issues with composite primary keys
+            # The ORM can filter out duplicate rows with same (Constituent_ID, Gift_Date) pair
+            import os
+            
+            gt_db_name = os.getenv("KC_GT_DB_DATABASE")
+            
+            query = text(f"""
+            SELECT 
+                Gift_Date,
+                Gift_Amount,
+                Gift_Type,
+                Gift_Pledge_Balance
+            FROM [{gt_db_name}].[dbo].[Transaction]
+            WHERE Constituent_ID = :constituent_id
+            ORDER BY Gift_Date DESC
+            """)
+            
+            result = db.execute(query, {"constituent_id": constituent_id})
+            transactions = result.fetchall()
+            
+            self.logger.info(f"Found {len(transactions)} total transactions for constituent_id: {constituent_id}")
             
             if not transactions:
                 return {
@@ -101,10 +120,13 @@ class KnowledgeCoreService:
             
             # Convert gift amounts to float for calculations (handle various formats)
             valid_transactions = []
+            invalid_count = 0
             for trans in transactions:
                 try:
                     # Clean and convert gift amount
                     amount_str = str(trans.Gift_Amount).replace('$', '').replace(',', '').strip()
+                    self.logger.debug(f"Processing transaction: Date={trans.Gift_Date}, Original={trans.Gift_Amount}, Cleaned={amount_str}")
+                    
                     if amount_str and amount_str not in ['', 'None', 'NULL']:
                         amount = float(amount_str)
                         if amount > 0:  # Only positive amounts
@@ -113,9 +135,19 @@ class KnowledgeCoreService:
                                 'date': trans.Gift_Date,
                                 'original_amount': trans.Gift_Amount
                             })
-                except (ValueError, TypeError):
-                    # Skip invalid amounts
+                            self.logger.debug(f"[VALID] Transaction added: ${amount:,.2f}")
+                        else:
+                            self.logger.debug(f"[SKIP] Negative/zero amount: ${amount:,.2f}")
+                            invalid_count += 1
+                    else:
+                        self.logger.debug(f"[SKIP] Empty/NULL amount string")
+                        invalid_count += 1
+                except (ValueError, TypeError) as e:
+                    self.logger.debug(f"[SKIP] Parse error: {str(e)}")
+                    invalid_count += 1
                     continue
+            
+            self.logger.info(f"Valid transactions: {len(valid_transactions)}, Invalid/Skipped: {invalid_count}")
             
             if not valid_transactions:
                 return {
@@ -127,6 +159,8 @@ class KnowledgeCoreService:
             
             # Calculate metrics
             total_giving = sum(t['amount'] for t in valid_transactions)
+            
+            self.logger.info(f"Lifetime giving for constituent_id {constituent_id}: ${total_giving:,.2f} (from {len(valid_transactions)} valid transactions)")
             
             # Find largest gift
             largest = max(valid_transactions, key=lambda x: x['amount'])

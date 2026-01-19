@@ -252,11 +252,13 @@ class Transaction(KCBase):
     __tablename__ = "Transaction"
     __table_args__ = {'schema': 'dbo'}
     
-    # Composite primary key using the fields we know exist
-    # This allows multiple transactions per constituent
+    # Primary key - use Gift_ID or transaction_id if available, otherwise use composite key without amount
+    # Removed Gift_Amount from PK to allow multiple transactions with same date and amount
     Constituent_ID = Column(String(100), ForeignKey('dbo.Donor.ConstituentId'), primary_key=True, index=True)
     Gift_Date = Column(DateTime, primary_key=True)
-    Gift_Amount = Column(String(50), primary_key=True)  # Include amount in PK to handle multiple gifts on same date
+    Gift_Amount = Column(String(50))  # Removed from primary key
+    Gift_Type = Column(String(100))
+    Gift_Pledge_Balance = Column(String(50))
     
     # Establish relationship to Donor table
     donor = relationship("Donor", foreign_keys=[Constituent_ID])

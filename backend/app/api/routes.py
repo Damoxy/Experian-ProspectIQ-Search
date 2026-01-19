@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 import json
 import time
+import os
 
 from models import SearchRequest
 from services.experian_service import ExperianService
@@ -385,13 +386,16 @@ async def get_transactions(
         # Query transactions from GivingTrend database
         logger.info(f"Fetching transactions for constituent_id: {constituent_id}")
         
-        query = text("""
+        # Use environment variable for database name
+        gt_db_name = os.getenv("KC_GT_DB_DATABASE")
+        
+        query = text(f"""
         SELECT 
             Gift_Date,
             Gift_Amount,
             Gift_Type,
             Gift_Pledge_Balance
-        FROM [KnowledgeCore_GivingTrendDB_test].[dbo].[Transaction]
+        FROM [{gt_db_name}].[dbo].[Transaction]
         WHERE Constituent_ID = :constituent_id
         ORDER BY Gift_Date DESC
         """)
@@ -410,9 +414,16 @@ async def get_transactions(
         # Format transactions
         formatted_transactions = []
         for row in transactions:
+            # Clean gift amount the same way as calculate_gift_metrics
+            try:
+                amount_str = str(row.Gift_Amount).replace('$', '').replace(',', '').strip()
+                gift_amount = float(amount_str) if amount_str and amount_str not in ['', 'None', 'NULL'] else 0.0
+            except (ValueError, TypeError):
+                gift_amount = 0.0
+            
             formatted_transactions.append({
                 "gift_date": row.Gift_Date.strftime("%Y-%m-%d") if row.Gift_Date else None,
-                "gift_amount": float(row.Gift_Amount) if row.Gift_Amount else 0.0,
+                "gift_amount": gift_amount,
                 "gift_type": row.Gift_Type if row.Gift_Type else "Unknown",
                 "gift_pledge_balance": float(row.Gift_Pledge_Balance) if row.Gift_Pledge_Balance else 0.0
             })

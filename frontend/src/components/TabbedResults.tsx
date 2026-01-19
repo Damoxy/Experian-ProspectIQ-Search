@@ -1358,14 +1358,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                               <TableCell sx={{ 
                                 fontWeight: 700, 
                                 fontSize: '0.875rem', 
-                                py: 1,
-                                borderRight: '1px solid #e0e0e0'
-                              }}>Gift Type</TableCell>
-                              <TableCell sx={{ 
-                                fontWeight: 700, 
-                                fontSize: '0.875rem', 
                                 py: 1
-                              }}>Pledge Balance</TableCell>
+                              }}>Gift Type</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -1402,11 +1396,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                                   py: 1,
                                   borderRight: '1px solid #e0e0e0'
                                 }}>{transaction.gift_type || 'Unknown'}</TableCell>
-                                <TableCell sx={{ 
-                                  fontSize: '0.875rem', 
-                                  py: 1,
-                                  color: transaction.gift_pledge_balance > 0 ? '#d32f2f' : '#666'
-                                }}>${transaction.gift_pledge_balance?.toFixed(2) || '0.00'}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
