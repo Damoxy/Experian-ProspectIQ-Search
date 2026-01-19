@@ -686,7 +686,7 @@ const AppContent: React.FC = () => {
                           const date = parts[1] ? parts[1].replace(')', '') : null;
                           return (
                             <>
-                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '1.4rem' }}>
                                 {amount}
                               </Typography>
                               {date && (
@@ -726,7 +726,7 @@ const AppContent: React.FC = () => {
                           const date = parts[1] ? parts[1].replace(')', '') : null;
                           return (
                             <>
-                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '1.4rem' }}>
                                 {amount}
                               </Typography>
                               {date && (
@@ -766,7 +766,7 @@ const AppContent: React.FC = () => {
                           const date = parts[1] ? parts[1].replace(')', '') : null;
                           return (
                             <>
-                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '1.4rem' }}>
                                 {amount}
                               </Typography>
                               {date && (
@@ -796,7 +796,7 @@ const AppContent: React.FC = () => {
                         <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.85, display: 'block', fontSize: '0.8rem' }}>
                           Lifetime Giving
                         </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '0.95rem' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, fontSize: '1.4rem' }}>
                           {(() => {
                             const value = results.results.consumer_behavior.records[0].contact_info.lifetime_giving;
                             if (!value || value === 'Not Available') return 'N/A';

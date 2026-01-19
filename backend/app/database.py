@@ -213,6 +213,40 @@ class Donor(KCBase):
     FundDescription = Column(String(100))
 
 
+class Constituent(KCBase):
+    """Constituent model for KnowledgeCore database"""
+    __tablename__ = "Constituent"
+    __table_args__ = {'schema': 'dbo'}
+    
+    # Primary key
+    Constituent_ID = Column(String(100), primary_key=True, index=True)
+    
+    # Campaign and organization
+    Campaign_ID = Column(String(100))
+    Organization_Name = Column(String(255))
+    
+    # Name fields
+    Title_1 = Column(String(50))
+    First_Name = Column(String(100), index=True)
+    Last_Name = Column(String(100), index=True)
+    Suffix_1 = Column(String(50))
+    
+    # Addressee and salutation
+    Primary_Addressee = Column(String(255))
+    Primary_Salutation = Column(String(255))
+    
+    # Preferred address
+    Preferred_Address_Line_1 = Column(String(200), index=True)
+    Preferred_Address_Line_2 = Column(String(200))
+    Preferred_City = Column(String(100), index=True)
+    Preferred_State = Column(String(50), index=True)
+    Preferred_ZIP = Column(String(20), index=True)
+    
+    # Contact information
+    Preferred_Home_Phone_Number = Column(String(20))
+    Preferred_E_mail_Number = Column(String(150))
+
+
 class Transaction(KCBase):
     """Transaction model for KnowledgeCore database"""
     __tablename__ = "Transaction"
