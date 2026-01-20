@@ -259,6 +259,8 @@ class Transaction(KCBase):
     Gift_Amount = Column(String(50))  # Removed from primary key
     Gift_Type = Column(String(100))
     Gift_Pledge_Balance = Column(String(50))
+    Campaign_ID = Column(String(100))
+    Fund_Description = Column(String(255))
     
     # Establish relationship to Donor table
     donor = relationship("Donor", foreign_keys=[Constituent_ID])

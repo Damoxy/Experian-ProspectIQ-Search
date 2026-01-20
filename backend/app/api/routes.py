@@ -394,7 +394,9 @@ async def get_transactions(
             Gift_Date,
             Gift_Amount,
             Gift_Type,
-            Gift_Pledge_Balance
+            Gift_Pledge_Balance,
+            Campaign_ID,
+            Fund_Description
         FROM [{gt_db_name}].[dbo].[Transaction]
         WHERE Constituent_ID = :constituent_id
         ORDER BY Gift_Date DESC
@@ -425,7 +427,9 @@ async def get_transactions(
                 "gift_date": row.Gift_Date.strftime("%Y-%m-%d") if row.Gift_Date else None,
                 "gift_amount": gift_amount,
                 "gift_type": row.Gift_Type if row.Gift_Type else "Unknown",
-                "gift_pledge_balance": float(row.Gift_Pledge_Balance) if row.Gift_Pledge_Balance else 0.0
+                "gift_pledge_balance": float(row.Gift_Pledge_Balance) if row.Gift_Pledge_Balance else 0.0,
+                "campaign_id": row.Campaign_ID if row.Campaign_ID else "N/A",
+                "fund_description": row.Fund_Description if row.Fund_Description else "N/A"
             })
         
         logger.info(f"Found {len(formatted_transactions)} transactions for constituent_id: {constituent_id}")

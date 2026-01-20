@@ -1358,8 +1358,20 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                               <TableCell sx={{ 
                                 fontWeight: 700, 
                                 fontSize: '0.875rem', 
-                                py: 1
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
                               }}>Gift Type</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Campaign ID</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1
+                              }}>Fund Description</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -1396,6 +1408,15 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                                   py: 1,
                                   borderRight: '1px solid #e0e0e0'
                                 }}>{transaction.gift_type || 'Unknown'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{transaction.campaign_id || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1
+                                }}>{transaction.fund_description || 'N/A'}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
