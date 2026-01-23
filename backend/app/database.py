@@ -140,6 +140,38 @@ class ExperianAPICache(Base):
     error_message = Column(String(500), nullable=True)  # If API returned error
 
 
+class DataIrisCache(Base):
+    """Cache for DataIris API responses with 90-day TTL"""
+    __tablename__ = "datairis_cache"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Search criteria - normalized for consistency (based on user input: first_name + last_name + zip_code)
+    search_hash = Column(String(64), unique=True, index=True, nullable=False)  # SHA256 hash of normalized criteria
+    first_name = Column(String(100), index=True)
+    last_name = Column(String(100), index=True)
+    zip_code = Column(String(20), index=True)
+    
+    # API responses stored as JSON
+    search_response = Column(JSON, nullable=False)  # Complete DataIris search response
+    transformed_results = Column(JSON, nullable=True)  # Transformed results organized by category/subcategory
+    
+    # Tracking and cleanup
+    api_calls_count = Column(Integer, default=1)  # Number of times this query was made
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)  # 90 days from creation
+    last_accessed_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Source tracking
+    api_source = Column(String(50), default="datairis")  # "datairis"
+    
+    # Cache statistics
+    record_count = Column(Integer, nullable=True)  # Number of records returned
+    is_partial = Column(Boolean, default=False)  # True if only partial data available
+    error_message = Column(String(500), nullable=True)  # If API returned error
+
+
 def generate_search_hash(first_name: str = None, last_name: str = None, address: str = None, 
                          city: str = None, state: str = None, zip_code: str = None) -> str:
     """

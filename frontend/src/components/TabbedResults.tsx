@@ -19,7 +19,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions, searchDataIris } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
@@ -59,6 +59,20 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const [emailValidationData, setEmailValidationData] = useState<any>(null);
   const [transactionData, setTransactionData] = useState<any>(null);
   const [transactionLoading, setTransactionLoading] = useState(false);
+  const [datairisData, setDatairisData] = useState<any>(null);
+
+  // Auto-load DataIris data if available in results
+  React.useEffect(() => {
+    console.log('useEffect triggered - data changed');
+    console.log('Current data:', data);
+    console.log('Current datairisData state:', datairisData);
+    
+    if (data && data.datairis && !datairisData) {
+      console.log('Setting DataIris data from results...');
+      console.log('Full DataIris object:', data.datairis);
+      setDatairisData(data.datairis);
+    }
+  }, [data, datairisData]);
 
   // Auto-fetch transactions when data changes and constituent_id is available
   React.useEffect(() => {
@@ -528,6 +542,14 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
       ) {
         categories['Political Interests'].push([key, value]);
       }
+      // Philanthropy patterns (Donor flags for giving categories of interest)
+      else if (
+        (lowerKey.includes('donor_') && lowerKey.includes('_flag')) ||
+        lowerKey.includes('animal_welfare_flag') ||
+        lowerKey.includes('arts_cultural_flag')
+      ) {
+        categories['Philanthropy'].push([key, value]);
+      }
       // Charitable Activities patterns
       else if (
         lowerKey.includes('socl caus/con') ||
@@ -535,7 +557,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         lowerKey.includes('charitable') ||
         lowerKey.includes('charity') ||
         lowerKey.includes('donation') ||
-        lowerKey.includes('donor') ||
         lowerKey.includes('volunteer') ||
         lowerKey.includes('animal wf') ||
         lowerKey.includes('environment') ||
@@ -615,6 +636,14 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
 
   const allCategorizedData = categorizeFields(data);
   const categorizedData = allCategorizedData;
+  
+  // Add DataIris Philanthropy fields to categorizedData for tab count
+  if (datairisData?.results?.['Philanthropy']?.['Giving Categories of Interest']) {
+    const philanthropyFields = datairisData.results['Philanthropy']['Giving Categories of Interest'];
+    if (Array.isArray(philanthropyFields)) {
+      categorizedData['Philanthropy'] = philanthropyFields.map((item: any) => [item.label, item.value]);
+    }
+  }
 
   // Define sub-sections for each category
   const getSubSections = (category: string, fields: Array<[string, any]>) => {
@@ -622,19 +651,52 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     
     switch (category) {
       case 'Profile':
+        // Extract DataIris Profile data if available
+        const datairisProfile = datairisData?.results?.['Profile']?.['Overview'];
+        
+        // Debug logging
+        console.log('DataIris full data:', datairisData);
+        console.log('DataIris results:', datairisData?.results);
+        console.log('DataIris Profile:', datairisData?.results?.['Profile']);
+        console.log('DataIris Profile Overview:', datairisProfile);
+        
+        // Extract individual values from DataIris
+        let estimatedIncome = 'Coming Soon';
+        let homeMarketValue = 'Coming Soon';
+        let netWorth = 'Coming Soon';
+        let capacityRange = 'Coming Soon';
+        
+        if (datairisProfile && Array.isArray(datairisProfile)) {
+          const incomeItem = datairisProfile.find((item: any) => item.label === 'Estimated Household Income');
+          const homeItem = datairisProfile.find((item: any) => item.label === 'Home Market Value');
+          const netWorthItem = datairisProfile.find((item: any) => item.label === 'Net Worth');
+          const capacityItem = datairisProfile.find((item: any) => item.label === 'Capacity Range $');
+          
+          estimatedIncome = incomeItem?.value || 'Coming Soon';
+          homeMarketValue = homeItem?.value || 'Coming Soon';
+          netWorth = netWorthItem?.value || 'Coming Soon';
+          capacityRange = capacityItem?.value || 'Coming Soon';
+          
+          console.log('Found DataIris values:', { estimatedIncome, homeMarketValue, netWorth, capacityRange });
+        } else if (datairisData) {
+          // Try alternative structure
+          console.log('DataIris data type:', typeof datairisProfile, 'Is Array?', Array.isArray(datairisProfile));
+        }
+        
         // Add predefined Overview Section tiles
         subSections['Overview Section'] = [
           ['Overall Score', 'Coming Soon'],
           ['Propensity', 'Coming Soon'],
           ['Capacity', 'Coming Soon'],
           ['Planned Giving', 'Coming Soon'],
-          ['Capacity Range $', 'Coming Soon'],
+          ['Capacity Range $', capacityRange],
           ['Total Political Giving $', 'Coming Soon'],
           ['Charitable Giving $', 'Coming Soon'],
-          ['Estimated Household Income', 'Coming Soon'],
-          ['Home Market Value', 'Coming Soon'],
-          ['Net Worth', 'Coming Soon']
+          ['Estimated Household Income', estimatedIncome],
+          ['Home Market Value', homeMarketValue],
+          ['Net Worth', netWorth]
         ];
+        
         // Check if we have transaction data or if it's loading/available
         const hasConstituentId = data.constituent_id || data.results?.consumer_behavior?.records?.[0]?.contact_info?.constituent_id;
         const isDatabaseSource = data.source === 'database';
@@ -842,6 +904,18 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         break;
 
       case 'Philanthropy':
+        // Extract DataIris Philanthropy data if available
+        const datairisPhilanthropy = datairisData?.results?.['Philanthropy']?.['Giving Categories of Interest'];
+        
+        if (datairisPhilanthropy && Array.isArray(datairisPhilanthropy)) {
+          // Convert DataIris transformed format to [key, value] format
+          const philanthropyFields: Array<[string, any]> = datairisPhilanthropy.map((item: any) => [item.label, item.value]);
+          subSections['Giving Categories of Interest'] = philanthropyFields;
+          console.log('Philanthropy fields from DataIris:', philanthropyFields);
+        } else {
+          subSections['Giving Categories of Interest'] = fields;
+        }
+        
         subSections['Contributions to Organizations'] = [
           ['Status', 'This section will be available soon']
         ];
@@ -885,7 +959,6 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           ['Key Topics', 'Coming Soon']
         ];
         break;
-        
 
       default:
         subSections['Overview'] = fields;

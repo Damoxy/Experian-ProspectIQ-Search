@@ -29,7 +29,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
-import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches, deleteSelectedSearches } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches, deleteSelectedSearches, searchDataIris } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -178,6 +178,24 @@ const AppContent: React.FC = () => {
 
     try {
       const data = await searchKnowledgeCore(formData);
+      
+      // Automatically fetch DataIris data to enrich results
+      try {
+        console.log('Fetching DataIris data automatically...');
+        const datairisData = await searchDataIris(formData);
+        console.log('DataIris response received:', datairisData);
+        
+        // Merge DataIris data with main results
+        if (datairisData && datairisData.results) {
+          data.datairis = datairisData;
+          console.log('DataIris data merged successfully into main results:', data.datairis);
+        } else {
+          console.warn('DataIris response missing results:', datairisData);
+        }
+      } catch (datairisErr) {
+        console.warn('DataIris search failed:', datairisErr instanceof Error ? datairisErr.message : 'Unknown error');
+        // Don't fail the entire search if DataIris fails
+      }
       
       // If the result comes from Experian fallback (no database records found),
       // also call phone validation to enrich contact information

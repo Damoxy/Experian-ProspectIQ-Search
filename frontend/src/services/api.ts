@@ -207,3 +207,31 @@ export const getTransactions = async (constituentId: string): Promise<any> => {
     throw new Error('An unexpected error occurred while fetching transactions');
   }
 };
+
+// DataIris Search API
+export const searchDataIris = async (formData: SearchFormData): Promise<any> => {
+  try {
+    const response = await apiClient.post('/datairis/search', formData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'DataIris search failed';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred during DataIris search');
+  }
+};
+
+// DataIris Health Check API
+export const checkDataIrisHealth = async (): Promise<any> => {
+  try {
+    const response = await apiClient.get('/datairis/health');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'DataIris health check failed';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred during DataIris health check');
+  }
+};

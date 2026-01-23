@@ -125,7 +125,6 @@ class KnowledgeCoreService:
                 try:
                     # Clean and convert gift amount
                     amount_str = str(trans.Gift_Amount).replace('$', '').replace(',', '').strip()
-                    self.logger.debug(f"Processing transaction: Date={trans.Gift_Date}, Original={trans.Gift_Amount}, Cleaned={amount_str}")
                     
                     if amount_str and amount_str not in ['', 'None', 'NULL']:
                         amount = float(amount_str)
@@ -135,15 +134,11 @@ class KnowledgeCoreService:
                                 'date': trans.Gift_Date,
                                 'original_amount': trans.Gift_Amount
                             })
-                            self.logger.debug(f"[VALID] Transaction added: ${amount:,.2f}")
                         else:
-                            self.logger.debug(f"[SKIP] Negative/zero amount: ${amount:,.2f}")
                             invalid_count += 1
                     else:
-                        self.logger.debug(f"[SKIP] Empty/NULL amount string")
                         invalid_count += 1
                 except (ValueError, TypeError) as e:
-                    self.logger.debug(f"[SKIP] Parse error: {str(e)}")
                     invalid_count += 1
                     continue
             
