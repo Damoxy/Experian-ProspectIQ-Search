@@ -19,7 +19,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions, searchDataIris } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
