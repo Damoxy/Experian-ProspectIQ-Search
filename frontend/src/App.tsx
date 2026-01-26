@@ -29,7 +29,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
-import { searchKnowledgeCore, getRecentSearches, clearRecentSearches, deleteSelectedSearches } from './services/api';
+import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches, deleteSelectedSearches, searchDataIris } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background

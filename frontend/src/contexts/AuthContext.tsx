@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { User, AuthResponse, LoginRequest, SignupRequest } from '../types';
 import { authAPI } from '../services/api';
 
@@ -18,10 +18,14 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Inactivity timeout in milliseconds (10 minutes)
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000;
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -34,6 +38,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     setIsLoading(false);
   }, []);
+
+  // Setup inactivity timeout
+  useEffect(() => {
+    if (!token) {
+      // Clear timeout if user is not authenticated
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      return;
+    }
+
+    // Function to reset the inactivity timer
+    const resetInactivityTimer = () => {
+      // Clear existing timer
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+
+      // Set new timer - logout after inactivity
+      inactivityTimerRef.current = setTimeout(() => {
+        console.log('User inactive for 10 minutes, logging out...');
+        logout();
+        // Redirect to home page
+        window.location.href = '/';
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    // Reset timer on user activity
+    const handleUserActivity = () => {
+      resetInactivityTimer();
+    };
+
+    // Add event listeners for user activity
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, handleUserActivity);
+    });
+
+    // Initialize the timer
+    resetInactivityTimer();
+
+    // Cleanup
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [token]);
 
   const login = async (credentials: LoginRequest) => {
     setIsLoading(true);
@@ -78,6 +133,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
+    
+    // Clear inactivity timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
   };
 
   const value: AuthContextType = {
