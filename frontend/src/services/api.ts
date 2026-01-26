@@ -20,14 +20,21 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor completely disabled for debugging
-// apiClient.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     console.log('API Error:', error.response?.status, error.config?.url, error.response?.data);
-//     return Promise.reject(error);
-//   }
-// );
+// Response interceptor to handle 401 errors (expired/invalid tokens)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data from localStorage when token is invalid/expired
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      
+      // Reload page to show login screen
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Authentication API
 export const authAPI = {
