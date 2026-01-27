@@ -6,7 +6,6 @@ for querying donation/philanthropy data
 import httpx
 import json
 import logging
-import pandas as pd
 from typing import Dict, Any, List, Optional
 from fastapi import HTTPException
 
