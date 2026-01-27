@@ -29,7 +29,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import TabbedResults from './components/TabbedResults';
 import BackToTop from './components/BackToTop';
-import { searchKnowledgeCore, validatePhoneNumbers, getRecentSearches, clearRecentSearches, deleteSelectedSearches, searchDataIris } from './services/api';
+import { searchKnowledgeCore, getRecentSearches, clearRecentSearches, deleteSelectedSearches } from './services/api';
 import { SearchFormData, SearchResult } from './types';
 
 // Create enhanced modern theme with gradient background
@@ -177,45 +177,15 @@ const AppContent: React.FC = () => {
     setSearchCriteria(formData); // Store the search criteria
 
     try {
+      // Single API call - backend returns all data (database + Experian + DataIris + phone + email validation)
       const data = await searchKnowledgeCore(formData);
       
-      // Automatically fetch DataIris data to enrich results
-      try {
-        console.log('Fetching DataIris data automatically...');
-        const datairisData = await searchDataIris(formData);
-        console.log('DataIris response received:', datairisData);
-        
-        // Merge DataIris data with main results
-        if (datairisData && datairisData.results) {
-          data.datairis = datairisData;
-          console.log('DataIris data merged successfully into main results:', data.datairis);
-        } else {
-          console.warn('DataIris response missing results:', datairisData);
-        }
-      } catch (datairisErr) {
-        console.warn('DataIris search failed:', datairisErr instanceof Error ? datairisErr.message : 'Unknown error');
-        // Don't fail the entire search if DataIris fails
-      }
+      console.log('Unified search response received:', data);
       
-      // If the result comes from Experian fallback (no database records found),
-      // also call phone validation to enrich contact information
-      if (data && data.fallback_source === 'experian_api' && data.database_records_found === 0) {
-        try {
-          console.log('Database records not found, attempting phone validation...');
-          const phoneData = await validatePhoneNumbers(formData);
-          
-          // Merge phone validation data with the main results
-          if (phoneData && phoneData.phone_validation) {
-            data.phone_validation = phoneData.phone_validation;
-            console.log('Phone validation data merged successfully');
-          }
-        } catch (phoneErr) {
-          console.warn('Phone validation failed:', phoneErr instanceof Error ? phoneErr.message : 'Unknown error');
-          // Don't fail the entire search if phone validation fails
-        }
-      }
-      
+      // Data already contains all information from all sources
+      // No need for separate DataIris, phone validation calls
       setResults(data);
+      
       // Reload recent searches after successful search
       loadRecentSearches();
     } catch (err) {

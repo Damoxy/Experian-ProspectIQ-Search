@@ -436,7 +436,8 @@ def transform_datairis_field(field_id: str, field_value: str, section: Optional[
 
 def transform_datairis_results(results: list) -> Dict[str, Any]:
     """
-    Transform raw DataIris results into UI-ready format organized by sections
+    Transform raw DataIris results into UI-ready format organized by sections.
+    Always pre-populates Philanthropy and Profile Overview fields with defaults.
     
     Args:
         results: List of parsed DataIris records
@@ -447,6 +448,38 @@ def transform_datairis_results(results: list) -> Dict[str, Any]:
     organized_results = {}
     philanthropy_fields = []
     
+    # Always initialize Philanthropy section with all 11 fields
+    organized_results["Philanthropy"] = {}
+    organized_results["Philanthropy"]["Giving Categories of Interest"] = []
+    
+    # Pre-populate all Philanthropy fields with default "No information" message
+    for field_id, field_config in DATAIRIS_UI_MAPPING["Philanthropy"]["Giving Categories of Interest"].items():
+        organized_results["Philanthropy"]["Giving Categories of Interest"].append({
+            "label": field_config.get("label"),
+            "value": "No information available for this user",
+            "type": field_config.get("type"),
+        })
+    
+    # Always initialize Profile > Overview section with key financial fields
+    organized_results["Profile"] = {}
+    organized_results["Profile"]["Overview"] = []
+    
+    # Pre-populate Profile Overview fields with default "No information" message
+    profile_overview_fields = ["Donor_Capacity_Code", "Income_Estimated_Household_Ranges", "Home_Market_Value", "NetWorth_Code"]
+    for field_id in profile_overview_fields:
+        if field_id in DATAIRIS_UI_MAPPING["Profile"]["Overview"]:
+            field_config = DATAIRIS_UI_MAPPING["Profile"]["Overview"][field_id]
+            organized_results["Profile"]["Overview"].append({
+                "label": field_config.get("label"),
+                "value": "No information available for this user",
+                "type": field_config.get("type"),
+            })
+    
+    # If no results, return with all fields showing "No information"
+    if not results or len(results) == 0:
+        return organized_results
+    
+    # Process actual results - override the "No information" defaults with real data
     for record in results:
         for field_id, field_value in record.items():
             # Special handling for Philanthropy fields - include even if empty
@@ -455,7 +488,10 @@ def transform_datairis_results(results: list) -> Dict[str, Any]:
                 field_id in ['Animal_Welfare_Flag', 'Arts_Cultural_Flag']
             )
             
-            if not field_value and not is_philanthropy_field:  # Skip empty values except for Philanthropy fields
+            # Special handling for Profile Overview fields - include even if empty
+            is_profile_overview_field = field_id in profile_overview_fields
+            
+            if not field_value and not is_philanthropy_field and not is_profile_overview_field:
                 continue
             
             transformed = transform_datairis_field(field_id, field_value)
@@ -464,19 +500,30 @@ def transform_datairis_results(results: list) -> Dict[str, Any]:
             
             if category == "Philanthropy":
                 philanthropy_fields.append(field_id)
-            
-            # Initialize structure if needed
-            if category not in organized_results:
-                organized_results[category] = {}
-            if subcategory not in organized_results[category]:
-                organized_results[category][subcategory] = []
-            
-            # Add transformed field
-            organized_results[category][subcategory].append({
-                "label": transformed["label"],
-                "value": transformed["value"],
-                "type": transformed["type"],
-            })
+                # Find and replace the default "No information" with actual value
+                for item in organized_results["Philanthropy"]["Giving Categories of Interest"]:
+                    if item["label"] == transformed["label"]:
+                        item["value"] = transformed["value"]
+                        break
+            elif category == "Profile" and subcategory == "Overview" and field_id in profile_overview_fields:
+                # Find and replace the default "No information" with actual value for Profile Overview
+                for item in organized_results["Profile"]["Overview"]:
+                    if item["label"] == transformed["label"]:
+                        item["value"] = transformed["value"]
+                        break
+            else:
+                # Initialize structure if needed for other fields
+                if category not in organized_results:
+                    organized_results[category] = {}
+                if subcategory not in organized_results[category]:
+                    organized_results[category][subcategory] = []
+                
+                # Add transformed field
+                organized_results[category][subcategory].append({
+                    "label": transformed["label"],
+                    "value": transformed["value"],
+                    "type": transformed["type"],
+                })
     
     if philanthropy_fields:
         print(f"[DEBUG] Found Philanthropy fields: {philanthropy_fields}")

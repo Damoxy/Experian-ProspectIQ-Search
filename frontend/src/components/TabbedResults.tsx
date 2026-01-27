@@ -692,10 +692,10 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
         console.log('DataIris Profile Overview:', datairisProfile);
         
         // Extract individual values from DataIris
-        let estimatedIncome = 'Coming Soon';
-        let homeMarketValue = 'Coming Soon';
-        let netWorth = 'Coming Soon';
-        let capacityRange = 'Coming Soon';
+        let estimatedIncome = 'No information available for this user';
+        let homeMarketValue = 'No information available for this user';
+        let netWorth = 'No information available for this user';
+        let capacityRange = 'No information available for this user';
         
         if (datairisProfile && Array.isArray(datairisProfile)) {
           const incomeItem = datairisProfile.find((item: any) => item.label === 'Estimated Household Income');
@@ -703,10 +703,10 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           const netWorthItem = datairisProfile.find((item: any) => item.label === 'Net Worth');
           const capacityItem = datairisProfile.find((item: any) => item.label === 'Capacity Range $');
           
-          estimatedIncome = incomeItem?.value || 'Coming Soon';
-          homeMarketValue = homeItem?.value || 'Coming Soon';
-          netWorth = netWorthItem?.value || 'Coming Soon';
-          capacityRange = capacityItem?.value || 'Coming Soon';
+          estimatedIncome = incomeItem?.value || 'No information available for this user';
+          homeMarketValue = homeItem?.value || 'No information available for this user';
+          netWorth = netWorthItem?.value || 'No information available for this user';
+          capacityRange = capacityItem?.value || 'No information available for this user';
           
           console.log('Found DataIris values:', { estimatedIncome, homeMarketValue, netWorth, capacityRange });
         } else if (datairisData) {

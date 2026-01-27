@@ -172,9 +172,9 @@ class DataIrisService:
         parsed_records = self.parse_results(raw_results) if raw_results else []
         record_count = len(parsed_records)
         
-        if parsed_records:
-            transformed_results = transform_datairis_results(parsed_records)
-            print(f"[DEBUG] Transformed results into {len(transformed_results)} categories")
+        # Always transform results, even if empty (will populate default Philanthropy fields)
+        transformed_results = transform_datairis_results(parsed_records)
+        print(f"[DEBUG] Transformed results: {len(transformed_results)} categories, record_count: {record_count}")
         
         # Save to cache ONLY if we have transformed results
         if self.db_session and transformed_results:

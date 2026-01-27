@@ -9,6 +9,7 @@ from sqlalchemy import text
 import json
 import time
 import os
+import asyncio
 
 from models import SearchRequest
 from services.experian_service import ExperianService
@@ -37,169 +38,260 @@ brightdata_service = BrightDataService()
 security = HTTPBearer()
 
 @router.post("/search")
-async def search_with_database_fallback(
+async def unified_search(
     search_request: SearchRequest,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     experian_db: Session = Depends(get_experian_db),
     givingtrend_db: Session = Depends(get_givingtrend_db)
 ):
     """
-    Search with database-first approach: Check KnowledgeCore database first, 
-    then fall back to Experian API if no records found
+    Unified search endpoint that aggregates data from all sources in parallel:
+    - GivingTrend Database (no cache)
+    - Experian API (with cache check)
+    - DataIris API (with cache check)
+    - Phone Validation (with cache check)
+    - Email Validation (with cache check)
+    
+    Returns primary result with all data merged, maintaining existing response format.
     (Protected endpoint - requires authentication)
     """
     start_time = time.time()
     
     # Validate authentication token
     user_id = get_current_user_id(credentials.credentials)
-    logger.info(f"Authenticated search request from user ID: {user_id}")
+    logger.info(f"Authenticated unified search request from user ID: {user_id}")
     
     # Log incoming request
     log_api_request(logger, "/search", search_request.dict())
     
     try:
-        # Step 1: Search GivingTrend database first
-        logger.info("Searching GivingTrend database first...")
-        database_results = await kc_service.search_donors(search_request, givingtrend_db)
+        logger.info("Starting unified search across all sources (parallel execution)...")
         
-        if database_results:
-            # Found records in database - return formatted response
-            logger.info(f"Found {len(database_results)} records in GivingTrend database")
-            result = kc_service.format_consumer_behavior_response(database_results, search_request, givingtrend_db)
-            
-            # Add phone and email validation to database results
+        # Define coroutines for parallel execution
+        async def get_database_results():
             try:
-                logger.info("Adding phone validation to database results...")
-                phone_validation_result = await phone_validation_service.validate_phone_numbers(search_request)
-                if phone_validation_result and phone_validation_result.get('phone_validation'):
-                    result['phone_validation'] = phone_validation_result['phone_validation']
-                    logger.info("Phone validation added to database results")
+                logger.info("Searching GivingTrend database...")
+                db_results = await kc_service.search_donors(search_request, givingtrend_db)
+                if db_results:
+                    logger.info(f"Found {len(db_results)} records in GivingTrend database")
+                    formatted = kc_service.format_consumer_behavior_response(db_results, search_request, givingtrend_db)
+                    return {"status": "success", "record_count": len(db_results), "data": formatted}
+                else:
+                    logger.info("No records found in GivingTrend database")
+                    return {"status": "success", "record_count": 0, "data": None}
             except Exception as e:
-                logger.warning(f"Phone validation failed for database results: {str(e)}")
-            
-            try:
-                logger.info("Adding email validation to database results...")
-                email_validation_result = await email_validation_service.validate_email_address(search_request)
-                if email_validation_result and email_validation_result.get('email_validation'):
-                    result['email_validation'] = email_validation_result['email_validation']
-                    logger.info("Email validation added to database results")
-            except Exception as e:
-                logger.warning(f"Email validation failed for database results: {str(e)}")
-            
-            # Log successful completion
-            total_time = time.time() - start_time
-            response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
-            log_api_response(logger, "/search", 200, len(response_json))
-            logger.info(f"Database search completed successfully in {total_time:.2f} seconds")
-            
-            # Add to search history (async, don't block response)
-            try:
-                SearchHistoryService.add_search(experian_db, user_id, search_request)
-            except Exception as e:
-                logger.warning(f"Failed to add search to history: {str(e)}")
-            
-            return result
+                logger.warning(f"Database search failed: {str(e)}")
+                return {"status": "error", "error": str(e), "record_count": 0, "data": None}
         
-        # Step 2: No records found in database - fall back to Experian API
-        logger.info("No records found in GivingTrend database, falling back to Experian API...")
+        async def get_experian_results():
+            try:
+                logger.info("Searching Experian (checking cache first)...")
+                # Check cache first
+                cache_result = CacheService.find_cached_result(
+                    session=experian_db,
+                    first_name=search_request.FIRST_NAME,
+                    last_name=search_request.LAST_NAME,
+                    address=search_request.STREET1,
+                    city=search_request.CITY,
+                    state=search_request.STATE,
+                    zip_code=search_request.ZIP
+                )
+                
+                if cache_result:
+                    logger.info("Experian cache hit!")
+                    return {"status": "success", "from_cache": True, "data": cache_result['search_response']}
+                
+                # Cache miss - call Experian API
+                logger.info("Experian cache miss - calling API...")
+                experian_result = await experian_service.search(search_request)
+                
+                # Cache the result
+                if isinstance(experian_result, dict):
+                    CacheService.save_cache_result(
+                        session=experian_db,
+                        search_response=experian_result,
+                        first_name=search_request.FIRST_NAME,
+                        last_name=search_request.LAST_NAME,
+                        address=search_request.STREET1,
+                        city=search_request.CITY,
+                        state=search_request.STATE,
+                        zip_code=search_request.ZIP,
+                        api_source="experian",
+                        is_partial=False,
+                        error_message=None
+                    )
+                    logger.info("Experian results cached")
+                
+                return {"status": "success", "from_cache": False, "data": experian_result}
+            except Exception as e:
+                logger.warning(f"Experian search failed: {str(e)}")
+                return {"status": "error", "error": str(e), "data": None}
         
-        # Step 2a: Check cache before calling Experian API
-        logger.info("Checking cache for previous Experian API results...")
-        cache_result = CacheService.find_cached_result(
-            session=experian_db,
-            first_name=search_request.FIRST_NAME,
-            last_name=search_request.LAST_NAME,
-            address=search_request.STREET1,
-            city=search_request.CITY,
-            state=search_request.STATE,
-            zip_code=search_request.ZIP
+        async def get_datairis_results():
+            try:
+                logger.info("Searching DataIris (checking cache first)...")
+                datairis_service = DataIrisService(db_session=experian_db)
+                
+                # DataIris service handles cache internally
+                result = datairis_service.search(
+                    first_name=search_request.FIRST_NAME,
+                    last_name=search_request.LAST_NAME,
+                    zip_code=search_request.ZIP,
+                    start=1,
+                    end=10
+                )
+                
+                if result:
+                    logger.info("DataIris search completed")
+                    # Return properly formatted DataIris response
+                    raw_results = result.get("search_response")
+                    organized_results = result.get("transformed_results") or {}
+                    
+                    record_count = 0
+                    if raw_results and isinstance(raw_results, dict):
+                        record_count = raw_results.get("totalCount", 0)
+                    
+                    logger.info(f"DataIris found {record_count} records, organized_results type: {type(organized_results)}")
+                    
+                    return {
+                        "status": "success",
+                        "record_count": record_count,
+                        "data": {
+                            "status": "success",
+                            "record_count": record_count,
+                            "results": organized_results
+                        }
+                    }
+                else:
+                    logger.info("No DataIris results found (None returned)")
+                    return {
+                        "status": "success",
+                        "record_count": 0,
+                        "data": {
+                            "status": "success",
+                            "record_count": 0,
+                            "results": {}
+                        }
+                    }
+            except Exception as e:
+                logger.warning(f"DataIris search failed: {str(e)}")
+                return {"status": "error", "error": str(e), "record_count": 0, "data": None}
+        
+        async def get_phone_validation():
+            try:
+                logger.info("Phone validation (checking cache first)...")
+                # Phone validation result is already cached in experian_api_cache table
+                cache_result = CacheService.find_cached_result(
+                    session=experian_db,
+                    first_name=search_request.FIRST_NAME,
+                    last_name=search_request.LAST_NAME,
+                    address=search_request.STREET1,
+                    city=search_request.CITY,
+                    state=search_request.STATE,
+                    zip_code=search_request.ZIP
+                )
+                
+                if cache_result and cache_result.get('phone_validation'):
+                    logger.info("Phone validation cache hit")
+                    return {"status": "success", "from_cache": True, "data": cache_result['phone_validation']}
+                
+                logger.info("Phone validation cache miss - calling service...")
+                result = await phone_validation_service.validate_phone_numbers(search_request)
+                
+                if result and result.get('phone_validation'):
+                    logger.info("Phone validation successful")
+                    return {"status": "success", "from_cache": False, "data": result['phone_validation']}
+                else:
+                    return {"status": "success", "from_cache": False, "data": None}
+            except Exception as e:
+                logger.warning(f"Phone validation failed: {str(e)}")
+                return {"status": "error", "error": str(e), "data": None}
+        
+        async def get_email_validation():
+            try:
+                logger.info("Email validation (checking cache first)...")
+                # Email validation result is already cached in experian_api_cache table
+                cache_result = CacheService.find_cached_result(
+                    session=experian_db,
+                    first_name=search_request.FIRST_NAME,
+                    last_name=search_request.LAST_NAME,
+                    address=search_request.STREET1,
+                    city=search_request.CITY,
+                    state=search_request.STATE,
+                    zip_code=search_request.ZIP
+                )
+                
+                if cache_result and cache_result.get('email_validation'):
+                    logger.info("Email validation cache hit")
+                    return {"status": "success", "from_cache": True, "data": cache_result['email_validation']}
+                
+                logger.info("Email validation cache miss - calling service...")
+                result = await email_validation_service.validate_email_address(search_request)
+                
+                if result and result.get('email_validation'):
+                    logger.info("Email validation successful")
+                    return {"status": "success", "from_cache": False, "data": result['email_validation']}
+                else:
+                    return {"status": "success", "from_cache": False, "data": None}
+            except Exception as e:
+                logger.warning(f"Email validation failed: {str(e)}")
+                return {"status": "error", "error": str(e), "data": None}
+        
+        # Execute all searches in parallel
+        db_result, experian_result, datairis_result, phone_result, email_result = await asyncio.gather(
+            get_database_results(),
+            get_experian_results(),
+            get_datairis_results(),
+            get_phone_validation(),
+            get_email_validation(),
+            return_exceptions=False
         )
         
-        if cache_result:
-            # Cache hit - return cached results
-            logger.info("Cache hit! Returning cached Experian API results")
-            result = cache_result['search_response']
-            if cache_result.get('phone_validation'):
-                result['phone_validation'] = cache_result['phone_validation']
-            if cache_result.get('email_validation'):
-                result['email_validation'] = cache_result['email_validation']
-            
-            # Log successful completion
-            total_time = time.time() - start_time
-            response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
-            log_api_response(logger, "/search", 200, len(response_json))
-            logger.info(f"Cache hit completed in {total_time:.2f} seconds")
-            
-            # Track search history
-            try:
-                SearchHistoryService.add_search(experian_db, user_id, search_request)
-            except Exception as e:
-                logger.warning(f"Failed to add search to history: {str(e)}")
-            
-            return result
+        # Determine primary result: Database first (if found), otherwise Experian
+        result = None
+        if db_result["status"] == "success" and db_result.get("data"):
+            result = db_result["data"]
+            logger.info("Using database results as primary")
+        elif experian_result["status"] == "success" and experian_result.get("data"):
+            result = experian_result["data"]
+            logger.info("Using Experian results as primary")
         
-        # Step 2b: Cache miss - call Experian API
-        logger.info("Cache miss - calling Experian API...")
-        result = await experian_service.search(search_request)
+        # If no primary result found, return empty structure
+        if not result:
+            result = {
+                "message": "No records found",
+                "results": {}
+            }
         
-        # Add source indicator to show this came from Experian fallback
-        if isinstance(result, dict):
-            result["fallback_source"] = "experian_api"
-            result["database_checked"] = True
-            result["database_records_found"] = 0
-            
-            # Add phone and email validation to Experian API results
-            phone_validation_result = None
-            email_validation_result = None
-            
-            try:
-                logger.info("Adding phone validation to Experian API results...")
-                phone_validation_result = await phone_validation_service.validate_phone_numbers(search_request)
-                if phone_validation_result and phone_validation_result.get('phone_validation'):
-                    result['phone_validation'] = phone_validation_result['phone_validation']
-                    logger.info("Phone validation added to Experian API results")
-            except Exception as e:
-                logger.warning(f"Phone validation failed for Experian API results: {str(e)}")
-            
-            try:
-                logger.info("Adding email validation to Experian API results...")
-                email_validation_result = await email_validation_service.validate_email_address(search_request)
-                if email_validation_result and email_validation_result.get('email_validation'):
-                    result['email_validation'] = email_validation_result['email_validation']
-                    logger.info("Email validation added to Experian API results")
-            except Exception as e:
-                logger.warning(f"Email validation failed for Experian API results: {str(e)}")
-            
-            # Step 2c: Save results to cache
-            logger.info("Saving Experian API results to cache...")
-            cache_saved = CacheService.save_cache_result(
-                session=experian_db,
-                search_response=result,
-                phone_validation=phone_validation_result.get('phone_validation') if phone_validation_result else None,
-                email_validation=email_validation_result.get('email_validation') if email_validation_result else None,
-                first_name=search_request.FIRST_NAME,
-                last_name=search_request.LAST_NAME,
-                address=search_request.STREET1,
-                city=search_request.CITY,
-                state=search_request.STATE,
-                zip_code=search_request.ZIP,
-                api_source="experian",
-                is_partial=False,
-                error_message=None
-            )
-            
-            if cache_saved:
-                logger.info("Successfully cached Experian API results")
-            else:
-                logger.warning("Failed to cache Experian API results (may be duplicate request)")
+        # Always add Experian data alongside primary result (if it's not already the primary)
+        if db_result["status"] == "success" and db_result.get("data") and experian_result["status"] == "success" and experian_result.get("data"):
+            result["experian"] = experian_result["data"]
+            logger.info("Experian data added alongside database results")
+        
+        # Add DataIris data to result (always, regardless of source)
+        if datairis_result["status"] == "success" and datairis_result.get("data"):
+            result["datairis"] = datairis_result["data"]
+            logger.info(f"DataIris data added to result. DataIris result structure: {type(datairis_result.get('data'))}")
+        else:
+            logger.warning(f"DataIris data not added. Status: {datairis_result.get('status')}, Has data: {bool(datairis_result.get('data'))}")
+        
+        # Add phone validation to result
+        if phone_result["status"] == "success" and phone_result.get("data"):
+            result["phone_validation"] = phone_result["data"]
+            logger.info("Phone validation data added to result")
+        
+        # Add email validation to result
+        if email_result["status"] == "success" and email_result.get("data"):
+            result["email_validation"] = email_result["data"]
+            logger.info("Email validation data added to result")
         
         # Log successful completion
         total_time = time.time() - start_time
         response_json = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
         log_api_response(logger, "/search", 200, len(response_json))
-        logger.info(f"Fallback search completed successfully in {total_time:.2f} seconds")
+        logger.info(f"Unified search completed in {total_time:.2f} seconds")
         
-        # Track search history
+        # Add to search history (non-blocking)
         try:
             SearchHistoryService.add_search(experian_db, user_id, search_request)
         except Exception as e:
@@ -208,10 +300,9 @@ async def search_with_database_fallback(
         return result
         
     except HTTPException:
-        # Re-raise HTTP exceptions without additional logging (already logged in service)
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in search endpoint: {str(e)}")
+        logger.error(f"Unexpected error in unified search endpoint: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Search failed: {str(e)}"
