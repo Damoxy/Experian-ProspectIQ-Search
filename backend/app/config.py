@@ -38,6 +38,10 @@ if env_origins:
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
 
+# BrightData API Configuration
+BRIGHTDATA_API_KEY = os.getenv("BRIGHTDATA_API_KEY")
+BRIGHTDATA_API_URL = os.getenv("BRIGHTDATA_API_URL", "https://api.brightdata.com/datasets/deep_lookup/v1")
+
 # Debug environment loading
 if DEBUG:
     print(f"Environment file path: {env_path}")

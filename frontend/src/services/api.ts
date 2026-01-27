@@ -235,3 +235,22 @@ export const checkDataIrisHealth = async (): Promise<any> => {
     throw new Error('An unexpected error occurred during DataIris health check');
   }
 };
+
+// Philanthropy API - BrightData donations search
+export const getPhilanthropy = async (donorName: string, city: string, state: string): Promise<any> => {
+  try {
+    const params = new URLSearchParams();
+    params.append('donor_name', donorName);
+    params.append('city', city);
+    params.append('state', state);
+    
+    const response = await apiClient.post(`/philanthropy/contributions?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message || 'Failed to fetch philanthropy data';
+      throw new Error(message);
+    }
+    throw new Error('An unexpected error occurred while fetching philanthropy data');
+  }
+};
