@@ -19,7 +19,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions, getPhilanthropy } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
@@ -60,6 +60,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const [transactionData, setTransactionData] = useState<any>(null);
   const [transactionLoading, setTransactionLoading] = useState(false);
   const [datairisData, setDatairisData] = useState<any>(null);
+  const [philanthropyData, setPhilanthropyData] = useState<any>(null);
+  const [philanthropyLoading, setPhilanthropyLoading] = useState(false);
 
   // Auto-load DataIris data if available in results
   React.useEffect(() => {
@@ -117,6 +119,35 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     fetchTransactionsAuto();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]); // Re-run when data changes
+
+  // Auto-fetch philanthropy data when name and location are available
+  React.useEffect(() => {
+    const fetchPhilanthropyAuto = async () => {
+      if (searchCriteria?.FIRST_NAME && searchCriteria?.LAST_NAME && searchCriteria?.CITY && searchCriteria?.STATE && !philanthropyData && !philanthropyLoading) {
+        setPhilanthropyLoading(true);
+        try {
+          const fullName = `${searchCriteria.FIRST_NAME} ${searchCriteria.LAST_NAME}`;
+          console.log(`Auto-fetching philanthropy data for ${fullName} in ${searchCriteria.CITY}, ${searchCriteria.STATE}`);
+          const philanthropyResponse = await getPhilanthropy(fullName, searchCriteria.CITY, searchCriteria.STATE);
+          console.log('Philanthropy response:', philanthropyResponse);
+          
+          setPhilanthropyData(philanthropyResponse);
+        } catch (error) {
+          console.error('Philanthropy fetch failed:', error);
+          setPhilanthropyData({ 
+            success: false,
+            data: [],
+            error: error instanceof Error ? error.message : 'Failed to fetch philanthropy data'
+          });
+        } finally {
+          setPhilanthropyLoading(false);
+        }
+      }
+    };
+
+    fetchPhilanthropyAuto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchCriteria]); // Re-run when search criteria changes
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -916,9 +947,25 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           subSections['Giving Categories of Interest'] = fields;
         }
         
-        subSections['Contributions to Organizations'] = [
-          ['Status', 'This section will be available soon']
-        ];
+        // Display BrightData contributions if available
+        if (philanthropyLoading) {
+          subSections['Contributions to Organizations'] = [
+            ['Status', 'Loading contribution data...']
+          ];
+        } else if (philanthropyData?.success && philanthropyData?.data && Array.isArray(philanthropyData.data) && philanthropyData.data.length > 0) {
+          // Store donations as a special table format marker
+          subSections['Contributions to Organizations'] = [
+            ['__BRIGHTDATA_TABLE__', JSON.stringify(philanthropyData.data)]
+          ];
+        } else if (philanthropyData?.success) {
+          subSections['Contributions to Organizations'] = [
+            ['Status', 'No contributions found for this donor']
+          ];
+        } else {
+          subSections['Contributions to Organizations'] = [
+            ['Status', 'Unable to fetch contributions']
+          ];
+        }
         break;
 
       case 'Affiliations':
@@ -1490,6 +1537,136 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                                   fontSize: '0.875rem', 
                                   py: 1
                                 }}>{transaction.fund_description || 'N/A'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              }
+
+              // BrightData contributions table rendering
+              if (key === '__BRIGHTDATA_TABLE__') {
+                const donations = JSON.parse(value as string);
+                return (
+                  <React.Fragment key={`brightdata-table-${index}`}>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell colSpan={2} sx={{ p: 0, border: 'none' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                width: '60px',
+                                textAlign: 'center'
+                              }}>S/N</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                minWidth: '150px'
+                              }}>URL</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                minWidth: '120px'
+                              }}>Verification Status</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                minWidth: '120px'
+                              }}>Amount</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                minWidth: '100px'
+                              }}>Date</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                minWidth: '150px'
+                              }}>Donor Identity</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                minWidth: '150px'
+                              }}>Recipient</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {donations.map((donation: any, donIndex: number) => (
+                              <TableRow 
+                                key={donIndex}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#666'
+                                }}>{donIndex + 1}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.75rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  color: '#1976d2',
+                                  textDecoration: 'underline',
+                                  cursor: 'pointer'
+                                }}>
+                                  {donation.url ? (
+                                    <a href={donation.url} target="_blank" rel="noopener noreferrer">
+                                      {donation.url?.substring(0, 40)}...
+                                    </a>
+                                  ) : 'N/A'}
+                                </TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  fontWeight: 600,
+                                  color: donation.verification_status === 'Verified' ? '#2e7d32' : '#d32f2f'
+                                }}>{donation.verification_status || 'Unverified'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1, 
+                                  fontWeight: 600,
+                                  borderRight: '1px solid #e0e0e0',
+                                  color: '#2e7d32'
+                                }}>{donation.donation_amount || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{donation.donation_date || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{donation.donor_identity || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1
+                                }}>{donation.recipient || 'N/A'}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
