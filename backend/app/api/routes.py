@@ -19,6 +19,7 @@ from services.email_validation_service import EmailValidationService
 from services.ai_insights_service import AIInsightsService
 from services.cache_service import CacheService
 from services.search_history_service import SearchHistoryService
+from services.brightdata_service import BrightDataService
 from datairis_service import DataIrisService
 from core.logging_config import setup_logging, log_api_request, log_api_response
 from config import DEBUG
@@ -34,6 +35,7 @@ kc_service = KnowledgeCoreService()
 phone_validation_service = PhoneValidationService()
 email_validation_service = EmailValidationService()
 ai_insights_service = AIInsightsService()
+brightdata_service = BrightDataService()
 security = HTTPBearer()
 
 @router.post("/search")
@@ -546,6 +548,63 @@ async def get_transactions(
             status_code=500,
             detail=f"Failed to fetch transactions: {str(e)}"
         )
+
+@router.post("/philanthropy/contributions")
+async def get_philanthropy_contributions(
+    donor_name: str,
+    city: str,
+    state: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Get donation/contribution records for a specific person from BrightData
+    Query format: "Find all donations made by [donor_name] of [city, state]"
+    (Protected endpoint - requires authentication)
+    """
+    start_time = time.time()
+    
+    # Validate authentication token
+    user_id = get_current_user_id(credentials.credentials)
+    logger.info(f"Philanthropy query from user ID: {user_id}")
+    
+    # Log incoming request
+    log_api_request(logger, "/philanthropy/contributions", {
+        "donor_name": donor_name,
+        "city": city,
+        "state": state
+    })
+    
+    try:
+        # Query BrightData for donation records
+        logger.info(f"Querying BrightData for donations by {donor_name} from {city}, {state}")
+        result = await brightdata_service.search_donations(donor_name, city, state)
+        
+        # Extract the processed data from the service response
+        records = result.get("data", []) if result.get("success") else []
+        
+        # Format for frontend consumption
+        response_data = {
+            "success": result.get("success", False),
+            "records": records,
+            "query": result.get("query", ""),
+            "total_records": len(records)
+        }
+        
+        # Log successful completion
+        total_time = time.time() - start_time
+        response_json = json.dumps(response_data)
+        log_api_response(logger, "/philanthropy/contributions", 200, len(response_json))
+        logger.info(f"Philanthropy query completed successfully in {total_time:.2f} seconds")
+        
+        return response_data
+        
+    except HTTPException as http_exc:
+        logger.error(f"HTTP error in philanthropy query: {http_exc.detail}")
+        raise
+    except Exception as e:
+        error_msg = f"Error querying philanthropy data: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.get("/health")
 async def health_check():

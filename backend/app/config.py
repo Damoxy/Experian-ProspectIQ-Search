@@ -13,6 +13,10 @@ load_dotenv(env_path)
 EXPERIAN_API_URL = os.getenv("EXPERIAN_API_URL")
 EXPERIAN_AUTH_TOKEN = os.getenv("EXPERIAN_AUTH_TOKEN")
 
+# BrightData API Configuration
+BRIGHTDATA_API_KEY = os.getenv("BRIGHTDATA_API_KEY")
+BRIGHTDATA_API_URL = os.getenv("BRIGHTDATA_API_URL")
+
 # Experian Aperture API Configuration (for phone validation)
 EXPERIAN_APERTURE_API_URL = os.getenv("EXPERIAN_APERTURE_API_URL", "https://api.experianaperture.io/identity/append/v1")
 EXPERIAN_APERTURE_AUTH_TOKEN = os.getenv("EXPERIAN_APERTURE_AUTH_TOKEN")

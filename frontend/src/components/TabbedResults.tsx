@@ -19,7 +19,7 @@ import {
   Psychology as PsychologyIcon,
 } from '@mui/icons-material';
 import { SearchResult, SearchFormData } from '../types';
-import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions } from '../services/api';
+import { validatePhoneNumbers, validateEmailAddress, generateAIInsights, getTransactions, getPhilanthropy } from '../services/api';
 
 interface TabbedResultsProps {
   data: SearchResult;
@@ -60,6 +60,8 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
   const [transactionData, setTransactionData] = useState<any>(null);
   const [transactionLoading, setTransactionLoading] = useState(false);
   const [datairisData, setDatairisData] = useState<any>(null);
+  const [philanthropyData, setPhilanthropyData] = useState<any>(null);
+  const [philanthropyLoading, setPhilanthropyLoading] = useState(false);
 
   // Auto-load DataIris data if available in results
   React.useEffect(() => {
@@ -117,6 +119,44 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
     fetchTransactionsAuto();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]); // Re-run when data changes
+
+  // Auto-fetch philanthropy data when search criteria is available
+  React.useEffect(() => {
+    const fetchPhilanthropyAuto = async () => {
+      // Extract first and last name from search criteria or data
+      let firstName = searchCriteria?.FIRST_NAME || data?.results?.personal_info?.records?.[0]?.contact_info?.first_name || '';
+      let lastName = searchCriteria?.LAST_NAME || data?.results?.personal_info?.records?.[0]?.contact_info?.last_name || '';
+      let city = searchCriteria?.CITY || data?.results?.personal_info?.records?.[0]?.contact_info?.city || '';
+      let state = searchCriteria?.STATE || data?.results?.personal_info?.records?.[0]?.contact_info?.state || '';
+      
+      // Only fetch if we have the required info and haven't already loaded
+      if (firstName && lastName && city && state && !philanthropyData && !philanthropyLoading) {
+        setPhilanthropyLoading(true);
+        try {
+          console.log(`Auto-fetching philanthropy data for ${firstName} ${lastName} from ${city}, ${state}`);
+          const philanthropyResponse = await getPhilanthropy(
+            `${firstName} ${lastName}`.trim(),
+            city,
+            state
+          );
+          console.log('Philanthropy response:', philanthropyResponse);
+          setPhilanthropyData(philanthropyResponse);
+        } catch (error) {
+          console.error('Philanthropy fetch failed:', error);
+          setPhilanthropyData({
+            success: false,
+            records: [],
+            error: error instanceof Error ? error.message : 'Failed to fetch philanthropy data'
+          });
+        } finally {
+          setPhilanthropyLoading(false);
+        }
+      }
+    };
+
+    fetchPhilanthropyAuto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, searchCriteria]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -916,9 +956,21 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
           subSections['Giving Categories of Interest'] = fields;
         }
         
-        subSections['Contributions to Organizations'] = [
-          ['Status', 'This section will be available soon']
-        ];
+        // Add BrightData contributions with special table marker
+        if (philanthropyData?.success && philanthropyData?.records && philanthropyData.records.length > 0) {
+          // Store as special marker for table rendering
+          subSections['Contributions to Organizations'] = [
+            ['__CONTRIBUTIONS_TABLE__', JSON.stringify(philanthropyData.records)]
+          ];
+        } else if (philanthropyLoading) {
+          subSections['Contributions to Organizations'] = [
+            ['Status', 'Loading...']
+          ];
+        } else {
+          subSections['Contributions to Organizations'] = [
+            ['Status', 'No contributions found']
+          ];
+        }
         break;
 
       case 'Affiliations':
@@ -1395,6 +1447,158 @@ const TabbedResults: React.FC<TabbedResultsProps> = ({ data, searchCriteria }) =
                       </Box>
                     </TableCell>
                   </TableRow>
+                );
+              }
+
+              // Contributions table rendering
+              if (key === '__CONTRIBUTIONS_TABLE__') {
+                const contributions = JSON.parse(value as string);
+                const formatUrl = (url: string) => {
+                  if (!url) return '';
+                  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    return `https://${url}`;
+                  }
+                  return url;
+                };
+                return (
+                  <React.Fragment key={`contributions-table-${index}`}>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell colSpan={2} sx={{ p: 0, border: 'none' }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0',
+                                width: '60px',
+                                textAlign: 'center'
+                              }}>S/N</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Name/Organization</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>URL</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Donation Amount</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Donation Date</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Donor Identity</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1,
+                                borderRight: '1px solid #e0e0e0'
+                              }}>Recipient Organization</TableCell>
+                              <TableCell sx={{ 
+                                fontWeight: 700, 
+                                fontSize: '0.875rem', 
+                                py: 1
+                              }}>Verification Status</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {contributions.map((contribution: any, contIndex: number) => {
+                              const fullUrl = formatUrl(contribution.url);
+                              return (
+                              <TableRow 
+                                key={contIndex}
+                                sx={{
+                                  '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  textAlign: 'center',
+                                  fontWeight: 600,
+                                  color: '#666'
+                                }}>{contIndex + 1}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  fontWeight: 500
+                                }}>{contribution.donor_identity || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.75rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0',
+                                  maxWidth: '150px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {fullUrl ? (
+                                    <a href={fullUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                                      {fullUrl}
+                                    </a>
+                                  ) : 'N/A'}
+                                </TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1, 
+                                  fontWeight: 600,
+                                  borderRight: '1px solid #e0e0e0',
+                                  color: '#2e7d32'
+                                }}>{contribution.donation_amount && contribution.donation_amount !== '' ? `$${contribution.donation_amount}` : 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{contribution.donation_date || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{contribution.donor_identity || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1,
+                                  borderRight: '1px solid #e0e0e0'
+                                }}>{contribution.recipient || 'N/A'}</TableCell>
+                                <TableCell sx={{ 
+                                  fontSize: '0.875rem', 
+                                  py: 1
+                                }}>
+                                  <Chip 
+                                    label={contribution.verification_status || 'Unknown'}
+                                    size="small"
+                                    color={contribution.verification_status === 'Verified' ? 'success' : 'default'}
+                                    variant="outlined"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
                 );
               }
 

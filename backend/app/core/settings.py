@@ -17,6 +17,10 @@ class Settings:
     EXPERIAN_API_URL: str = os.getenv("EXPERIAN_API_URL", "")
     EXPERIAN_AUTH_TOKEN: str = os.getenv("EXPERIAN_AUTH_TOKEN", "")
     
+    # BrightData API Configuration
+    BRIGHTDATA_API_KEY: str = os.getenv("BRIGHTDATA_API_KEY", "")
+    BRIGHTDATA_API_URL: str = os.getenv("BRIGHTDATA_API_URL", "")
+    
     # Server Configuration  
     HOST: str = os.getenv("HOST", "localhost")
     PORT: int = int(os.getenv("PORT", 8000))
