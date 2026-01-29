@@ -54,7 +54,7 @@ class BrightDataService:
         
         try:
             # Format query as specified
-            query = f'Find all donations made by "{donor_name}" of "{city}, {state}"'
+            query = f'Find all donations given by "{donor_name}"'
             
             self.logger.info(f"Querying BrightData for donations: {query}")
             
@@ -119,7 +119,7 @@ class BrightDataService:
             self.logger.debug(f"BrightData data response: {json.dumps(response_data, indent=2)}")
             
             # Process and structure the response
-            processed_data = self._process_donation_data(response_data)
+            processed_data = self._process_donation_data(response_data, donor_name)
             
             return {
                 "success": True,
@@ -142,12 +142,13 @@ class BrightDataService:
             self.logger.error(error_msg)
             raise HTTPException(status_code=500, detail=error_msg)
     
-    def _process_donation_data(self, raw_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _process_donation_data(self, raw_data: Dict[str, Any], donor_name: str) -> List[Dict[str, Any]]:
         """
         Process raw BrightData response into structured donation records
         
         Args:
             raw_data: Raw response from BrightData API
+            donor_name: Name of the donor
             
         Returns:
             List of processed donation records
@@ -171,23 +172,24 @@ class BrightDataService:
             for idx, entry in enumerate(sample_data):
                 self.logger.info(f"Processing entry {idx}: {entry.get('name', 'Unknown')}")
                 
-                # Check if constraint passed (john_fisher_holmen_wi_check = yes)
+                # Check if constraint passed (given_by_{donor_name}_check = yes/no)
                 filter_results = entry.get("filter_results", [])
                 donor_check = "no"
+                # Construct the constraint key dynamically based on donor name
+                constraint_key = f"given_by_{donor_name.lower().replace(' ', '_')}_check"
                 for f in filter_results:
-                    if f.get("key") == "john_fisher_holmen_wi_check":
+                    if f.get("key") == constraint_key:
                         donor_check = f.get("value", "no").lower()
                         break
                 
-                # Only process if constraint passed
-                if donor_check != "yes":
-                    self.logger.info(f"Skipping entry {idx} - constraint check failed")
-                    continue
+                # Process all entries (both yes and no results)
+                self.logger.info(f"Processing entry {idx} - constraint check: {donor_check}")
                 
                 # Extract enrichment results (the actual donation data)
                 enrichment_results = entry.get("enrichment_results", [])
                 row = {
                     "url": entry.get("url"),
+                    "name": entry.get("name"),
                     "verification_status": "Verified" if donor_check == "yes" else "Unverified",
                     "recipient": None,
                     "donation_date": None,
